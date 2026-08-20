@@ -17,6 +17,13 @@ const BrandLockup = ({ className = "" }: { className?: string }) => (
   <Image src="/brand/ruang-momen-logo.png" alt="Ruang Momen" width={1973} height={644} className={`brand-logo-image h-11 w-auto object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,.16)] sm:h-12 lg:h-[54px] ${className}`} priority />
 );
 
+const HeaderBrandLockup = () => (
+  <span className="relative isolate flex items-center justify-center">
+    <Image src="/brand/ruang-momen-header-logo.png" alt="" width={1916} height={821} className="pointer-events-none absolute h-16 w-auto object-contain opacity-[.07] blur-[1px] sm:h-[68px] lg:h-20" aria-hidden="true" />
+    <Image src="/brand/ruang-momen-header-logo.png" alt="Ruang Momen" width={1916} height={821} className="brand-logo-image relative h-14 w-auto object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,.16)] sm:h-[60px] lg:h-[68px]" priority />
+  </span>
+);
+
 function IkonPopover({ nama }: { nama: "album" | "qr" | "cerita" }) {
   if (nama === "album") return <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2.5" /><path strokeLinecap="round" strokeLinejoin="round" d="m5 17 4-3.5 3 2.5 2.5-2 4.5 3" /><circle cx="9" cy="10" r="1.5" /></svg>;
   if (nama === "qr") return <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" /><path strokeLinecap="round" d="M15 14h2v2h3m-6 4h2m4-3v3" /></svg>;
@@ -116,7 +123,7 @@ export default function Home() {
       <header id="desktop-site-header" className="desktop-site-header sticky top-0 z-50 border-b border-[#F5F0E7]/[.07] bg-[#071727]/90 backdrop-blur-xl lg:relative lg:top-auto lg:border-[#D6B56F]/20 lg:bg-[#071727]/95 lg:shadow-[0_8px_30px_rgba(0,0,0,.12)]">
         <nav className="desktop-navbar-inner mx-auto flex h-16 max-w-7xl items-center justify-center px-5 sm:h-[68px] sm:px-8 lg:h-20 lg:justify-between lg:px-12" aria-label="Navigasi utama">
           <a href="#beranda" className="flex items-center gap-2.5" aria-label="Beranda Ruang Momen">
-            <BrandLockup />
+            <HeaderBrandLockup />
           </a>
           <div className="hidden items-center gap-6 text-[15px] leading-none font-semibold tracking-[-.01em] text-[#D9D6CE] lg:flex xl:gap-8 xl:text-[17px]">
             <details className="group relative"><summary className="desktop-nav-link flex cursor-pointer list-none items-center gap-2 py-7">Alur <svg className="h-4 w-4 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m4 6 4 4 4-4" /></svg></summary><div className="absolute left-0 top-[calc(100%-5px)] w-72 rounded-[18px] border border-[#F5F0E7]/10 bg-[#0A1D30]/95 p-1.5 text-sm leading-normal shadow-[0_16px_38px_rgba(0,0,0,.22)] backdrop-blur-xl"><a href="#cara-kerja" className="flex gap-3 rounded-[13px] p-3 transition hover:bg-[#F5F0E7]/[.045]"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#D6B56F]/10 text-[#D6B56F]"><IkonPopover nama="album" /></span><span><span className="block text-[13px] font-semibold text-[#F5F0E7]">Buat ruang</span><span className="mt-0.5 block text-[11px] leading-4 text-[#AEB8BE]">Mulai ruang acaramu dalam beberapa langkah.</span></span></a><a href="#cara-kerja" className="flex gap-3 rounded-[13px] p-3 transition hover:bg-[#F5F0E7]/[.045]"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#D6B56F]/10 text-[#D6B56F]"><IkonPopover nama="qr" /></span><span><span className="block text-[13px] font-semibold text-[#F5F0E7]">Bagikan QR</span><span className="mt-0.5 block text-[11px] leading-4 text-[#AEB8BE]">Tamu scan lalu kirim momen dari browser.</span></span></a><a href="#cara-kerja" className="flex gap-3 rounded-[13px] p-3 transition hover:bg-[#F5F0E7]/[.045]"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#A98242]/10 text-[#A98242]"><IkonPopover nama="cerita" /></span><span><span className="block text-[13px] font-semibold text-[#F5F0E7]">Kumpulkan cerita</span><span className="mt-0.5 block text-[11px] leading-4 text-[#AEB8BE]">Semua foto masuk ke satu ruang bersama.</span></span></a></div></details>

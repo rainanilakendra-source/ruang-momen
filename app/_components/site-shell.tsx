@@ -7,7 +7,10 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-[#D6B56F]/20 bg-[#071727]/95 shadow-[0_8px_28px_rgba(0,0,0,.1)] backdrop-blur-xl">
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-center px-5 sm:h-[68px] sm:px-8 lg:h-20 lg:justify-between lg:px-12" aria-label="Navigasi halaman">
         <Link href="/" aria-label="Beranda Ruang Momen">
-          <Image src="/brand/ruang-momen-logo.png" alt="Ruang Momen" width={1973} height={644} className="h-11 w-auto object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,.16)] sm:h-12 lg:h-[54px]" priority />
+          <span className="relative isolate flex items-center justify-center">
+            <Image src="/brand/ruang-momen-header-logo.png" alt="" width={1916} height={821} className="pointer-events-none absolute h-16 w-auto object-contain opacity-[.07] blur-[1px] sm:h-[68px] lg:h-20" aria-hidden="true" />
+            <Image src="/brand/ruang-momen-header-logo.png" alt="Ruang Momen" width={1916} height={821} className="relative h-14 w-auto object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,.16)] sm:h-[60px] lg:h-[68px]" priority />
+          </span>
         </Link>
         <div className="hidden items-center gap-7 text-sm font-semibold text-[#D9D6CE] md:flex lg:text-base">
           <Link href="/" className="transition-colors hover:text-[#F5F0E7]">Beranda</Link>
