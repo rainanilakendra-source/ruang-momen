@@ -1,69 +1,193 @@
 import Image from "next/image";
+import Link from "next/link";
+import { DesktopNavbarFloat } from "./_components/desktop-navbar-float";
+
+const IkonKamera = ({ className = "h-6 w-6" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m7 7 1.5-2.5h7L17 7h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2Z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </svg>
+);
+
+const BrandIcon = ({ className = "h-9 w-9" }: { className?: string }) => (
+  <Image src="/brand/ruang-momen-icon.png" alt="" width={512} height={512} className={`object-contain ${className}`} />
+);
+
+const BrandLockup = ({ className = "" }: { className?: string }) => (
+  <Image src="/brand/ruang-momen-logo.png" alt="Ruang Momen" width={1973} height={644} className={`brand-logo-image h-11 w-auto object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,.16)] sm:h-12 lg:h-[54px] ${className}`} priority />
+);
+
+function IkonPopover({ nama }: { nama: "album" | "qr" | "cerita" }) {
+  if (nama === "album") return <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2.5" /><path strokeLinecap="round" strokeLinejoin="round" d="m5 17 4-3.5 3 2.5 2.5-2 4.5 3" /><circle cx="9" cy="10" r="1.5" /></svg>;
+  if (nama === "qr") return <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" /><path strokeLinecap="round" d="M15 14h2v2h3m-6 4h2m4-3v3" /></svg>;
+  return <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5.5 5h13A2.5 2.5 0 0 1 21 7.5v7a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 3v-3h-1A2.5 2.5 0 0 1 3 14.5v-7A2.5 2.5 0 0 1 5.5 5Z" /><path strokeLinecap="round" d="M8 9h8m-8 4h5" /></svg>;
+}
+
+function IkonNavigasi({ nama }: { nama: "beranda" | "cara" | "contoh" | "faq" }) {
+  const kelas = "h-[21px] w-[21px]";
+
+  if (nama === "beranda") return <svg className={kelas} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m4 10 8-6.5 8 6.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19v-9Z" /><path strokeLinecap="round" d="M9.5 20v-6h5v6" /></svg>;
+  if (nama === "cara") return <svg className={kelas} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path strokeLinecap="round" strokeLinejoin="round" d="m10 8 5 4-5 4V8Z" /></svg>;
+  if (nama === "contoh") return <svg className={kelas} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5" /><circle cx="9" cy="10" r="2" /><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 18 4.5-4 3 2.5 3-3 4.5 4" /></svg>;
+  return <svg className={kelas} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path strokeLinecap="round" d="M9.7 9a2.5 2.5 0 1 1 3.4 2.35c-.75.3-1.1.8-1.1 1.65m0 3h.01" /></svg>;
+}
+
+const IkonPanah = () => (
+  <svg className="h-5 w-5 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14m-5-5 5 5-5 5" />
+  </svg>
+);
+
+const langkah = [
+  { nomor: "01", ikon: "ruang", judul: "Buat ruangmu", deskripsi: "Beri nama acara dan siapkan ruang dalam beberapa langkah." },
+  { nomor: "02", ikon: "qr", judul: "Bagikan QR", deskripsi: "Letakkan QR di meja, undangan, atau area acara. Tamu cukup scan dari HP." },
+  { nomor: "03", ikon: "album", judul: "Kumpulkan momennya", deskripsi: "Setiap foto dari tamu langsung tersimpan dalam satu album bersama." },
+];
+
+const fitur = [
+  { ikon: "kamera", judul: "Tanpa install aplikasi", deskripsi: "Tamu cukup membuka kamera melalui browser.", sorotan: "Langsung dari browser" },
+  { ikon: "kode", judul: "Satu QR untuk semua", deskripsi: "Satu kode dapat digunakan semua tamu di acaramu.", sorotan: "Sederhana untuk dibagikan" },
+  { ikon: "album", judul: "Semua momen terkumpul rapi", deskripsi: "Setiap foto tersimpan rapi di satu tempat.", sorotan: "Satu ruang bersama" },
+  { ikon: "ponsel", judul: "Nyaman dipakai dari HP", deskripsi: "Dirancang agar nyaman digunakan langsung dari ponsel.", sorotan: "Mobile-first" },
+  { ikon: "usia", judul: "Mudah untuk berbagai usia", deskripsi: "Alur yang sederhana membantu setiap tamu ikut berbagi momen.", sorotan: "Familiar tanpa ribet" },
+];
+
+const contohAlbum = [
+  { kategori: "Pernikahan", judul: "Nabila & Arga", ringkasan: "Momen hangat dari keluarga dan sahabat.", statistik: "128 foto · 42 orang", posisi: "0% center" },
+  { kategori: "Ulang Tahun", judul: "30 Tahun Kevin", ringkasan: "Tawa, kejutan, dan sudut-sudut spontan.", statistik: "86 foto · 28 orang", posisi: "50% center" },
+  { kategori: "Gathering", judul: "Hangat Bersama Arunika", ringkasan: "Cerita kecil dari satu hari kebersamaan.", statistik: "104 foto · 36 orang", posisi: "100% center" },
+];
+
+const jenisAcara = [
+  { nama: "Pernikahan", ikon: "cincin", deskripsi: "Janji yang dirayakan." },
+  { nama: "Ulang Tahun", ikon: "kue", deskripsi: "Tawa dan kejutan kecil." },
+  { nama: "Gathering", ikon: "orang", deskripsi: "Hangatnya kebersamaan." },
+  { nama: "Wisuda", ikon: "wisuda", deskripsi: "Langkah baru yang berarti." },
+  { nama: "Reuni", ikon: "cerita", deskripsi: "Cerita lama, suasana baru." },
+  { nama: "Acara Kantor", ikon: "kantor", deskripsi: "Momen di balik kolaborasi." },
+];
+
+const testimonial = [
+  { kutipan: "Ternyata momen paling seru justru datang dari sudut keluarga dan sahabat. Banyak foto kecil yang nggak sempat ditangkap fotografer.", nama: "Nadia & Raka", acara: "Pernikahan", statistik: "138 momen · 47 tamu", posisi: "0% center" },
+  { kutipan: "Tamu tinggal scan lalu foto. Orang tua, sepupu, sampai teman kantor langsung bisa ikut tanpa bingung.", nama: "Tya Prameswari", acara: "Ulang Tahun", statistik: "84 momen · 26 tamu", posisi: "50% center" },
+  { kutipan: "Semua terasa simpel. Satu QR cukup, dan foto-foto dari banyak sudut langsung terkumpul rapi.", nama: "Daniel Liem", acara: "Gathering", statistik: "96 momen · 31 orang", posisi: "100% center" },
+];
+
+const pertanyaan = [
+  { tanya: "Apakah tamu perlu install aplikasi?", jawab: "Tidak. Tamu cukup membuka tautan album dari browser di HP mereka." },
+  { tanya: "Bagaimana cara tamu mengirim foto?", jawab: "Tamu memindai QR acara, lalu mengambil atau memilih foto langsung melalui browser." },
+  { tanya: "Apakah satu QR bisa digunakan semua orang?", jawab: "Ya. Satu QR acara dapat dibagikan kepada seluruh tamu yang hadir." },
+  { tanya: "Apakah album bisa dibuka dari HP?", jawab: "Bisa. Pengalaman album dirancang agar nyaman digunakan dari ponsel, tablet, maupun desktop." },
+  { tanya: "Apakah cocok untuk acara kecil maupun besar?", jawab: "Cocok. Alurnya dibuat sederhana agar dapat digunakan pada perayaan intim maupun acara dengan lebih banyak tamu." },
+];
+
+function IkonFitur({ nama }: { nama: string }) {
+  if (nama === "kamera") return <IkonKamera />;
+  if (nama === "kode") return <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" /><path strokeLinecap="round" d="M15 14h2v2h3m-6 4h2m4-3v3" /></svg>;
+  if (nama === "album") return <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" /><circle cx="9" cy="10" r="2" /><path strokeLinecap="round" strokeLinejoin="round" d="m4 18 5-4 3 2 3-3 5 5" /></svg>;
+  if (nama === "usia") return <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="8" cy="9" r="3" /><circle cx="17" cy="10" r="2.5" /><path strokeLinecap="round" d="M3.5 19c.5-3.2 2-5 4.5-5s4 1.8 4.5 5m1-3.5c.8-1 1.9-1.5 3.5-1.5 2.2 0 3.4 1.6 3.7 4" /></svg>;
+  return <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path strokeLinecap="round" d="M10 5h4m-3 13.5h2" /></svg>;
+}
+
+function IkonLangkah({ nama }: { nama: string }) {
+  const properti = { className: "h-6 w-6", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.6, "aria-hidden": true as const };
+  if (nama === "ruang") return <svg {...properti}><rect x="4" y="5" width="16" height="15" rx="2.5" /><path strokeLinecap="round" d="M8 5V3.5m8 1.5V3.5M8 10h8m-4-3v6m-4 3h5" /></svg>;
+  if (nama === "qr") return <svg {...properti}><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 14h2v2h3m-6 4h2m4-3v3" /></svg>;
+  return <svg {...properti}><rect x="3.5" y="4" width="17" height="16" rx="2.5" /><circle cx="9" cy="10" r="1.75" /><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 18 4.5-4 3 2.5 3-3 4.5 4" /></svg>;
+}
+
+function IkonAcara({ nama }: { nama: string }) {
+  const properti = { className: "h-5 w-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.6, "aria-hidden": true as const };
+  if (nama === "cincin") return <svg {...properti}><circle cx="9" cy="13" r="5" /><circle cx="15" cy="13" r="5" /><path strokeLinecap="round" strokeLinejoin="round" d="m9 5 3-3 3 3-3 3-3-3Z" /></svg>;
+  if (nama === "kue") return <svg {...properti}><path strokeLinecap="round" strokeLinejoin="round" d="M5 10h14v10H5V10Zm0 4h14M9 10V7m3 3V5m3 5V7" /><path strokeLinecap="round" d="M9 5h.01m3-2h.01m3 2h.01" /></svg>;
+  if (nama === "orang") return <svg {...properti}><circle cx="8" cy="9" r="3" /><circle cx="17" cy="10" r="2.5" /><path strokeLinecap="round" d="M3.5 20c.5-3.5 2-5.5 4.5-5.5s4 2 4.5 5.5m1-4c.8-1 1.9-1.5 3.5-1.5 2.2 0 3.4 1.7 3.7 4.5" /></svg>;
+  if (nama === "wisuda") return <svg {...properti}><path strokeLinecap="round" strokeLinejoin="round" d="m3 9 9-5 9 5-9 5-9-5Zm4 3v4c2.7 2.3 7.3 2.3 10 0v-4m4-3v6" /></svg>;
+  if (nama === "cerita") return <svg {...properti}><path strokeLinecap="round" strokeLinejoin="round" d="M5 5h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 3v-3a2 2 0 0 1-1-1.7V7a2 2 0 0 1 2-2Z" /><path strokeLinecap="round" d="M8 10h8m-8 4h5" /></svg>;
+  return <svg {...properti}><path strokeLinecap="round" strokeLinejoin="round" d="M4 20V8h16v12M8 8V4h8v4M8 12h2m4 0h2m-8 4h2m4 0h2" /></svg>;
+}
+
+const polaQR = [0, 1, 2, 4, 5, 7, 9, 10, 11, 12, 14, 15, 17, 18, 19, 20, 22, 24];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
+    <main className="min-h-screen overflow-hidden bg-[#071727] pb-[calc(6rem+env(safe-area-inset-bottom))] text-[#F5F0E7] lg:pb-0">
+      <div className="navbar-layout-slot lg:sticky lg:top-0 lg:z-50 lg:h-20">
+        <DesktopNavbarFloat />
+      <header id="desktop-site-header" className="desktop-site-header sticky top-0 z-50 border-b border-[#F5F0E7]/[.07] bg-[#071727]/90 backdrop-blur-xl lg:relative lg:top-auto lg:border-[#D6B56F]/20 lg:bg-[#071727]/95 lg:shadow-[0_8px_30px_rgba(0,0,0,.12)]">
+        <nav className="desktop-navbar-inner mx-auto flex h-16 max-w-7xl items-center justify-center px-5 sm:h-[68px] sm:px-8 lg:h-20 lg:justify-between lg:px-12" aria-label="Navigasi utama">
+          <a href="#beranda" className="flex items-center gap-2.5" aria-label="Beranda Ruang Momen">
+            <BrandLockup />
           </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          <div className="hidden items-center gap-6 text-[15px] leading-none font-semibold tracking-[-.01em] text-[#D9D6CE] lg:flex xl:gap-8 xl:text-[17px]">
+            <details className="group relative"><summary className="desktop-nav-link flex cursor-pointer list-none items-center gap-2 py-7">Alur <svg className="h-4 w-4 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m4 6 4 4 4-4" /></svg></summary><div className="absolute left-0 top-[calc(100%-5px)] w-72 rounded-[18px] border border-[#F5F0E7]/10 bg-[#0A1D30]/95 p-1.5 text-sm leading-normal shadow-[0_16px_38px_rgba(0,0,0,.22)] backdrop-blur-xl"><a href="#cara-kerja" className="flex gap-3 rounded-[13px] p-3 transition hover:bg-[#F5F0E7]/[.045]"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#D6B56F]/10 text-[#D6B56F]"><IkonPopover nama="album" /></span><span><span className="block text-[13px] font-semibold text-[#F5F0E7]">Buat ruang</span><span className="mt-0.5 block text-[11px] leading-4 text-[#AEB8BE]">Mulai ruang acaramu dalam beberapa langkah.</span></span></a><a href="#cara-kerja" className="flex gap-3 rounded-[13px] p-3 transition hover:bg-[#F5F0E7]/[.045]"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#D6B56F]/10 text-[#D6B56F]"><IkonPopover nama="qr" /></span><span><span className="block text-[13px] font-semibold text-[#F5F0E7]">Bagikan QR</span><span className="mt-0.5 block text-[11px] leading-4 text-[#AEB8BE]">Tamu scan lalu kirim momen dari browser.</span></span></a><a href="#cara-kerja" className="flex gap-3 rounded-[13px] p-3 transition hover:bg-[#F5F0E7]/[.045]"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#A98242]/10 text-[#A98242]"><IkonPopover nama="cerita" /></span><span><span className="block text-[13px] font-semibold text-[#F5F0E7]">Kumpulkan cerita</span><span className="mt-0.5 block text-[11px] leading-4 text-[#AEB8BE]">Semua foto masuk ke satu ruang bersama.</span></span></a></div></details>
+            <a href="#untuk-acara" className="desktop-nav-link">Momen Acara</a>
+            <a href="#contoh-album" className="desktop-nav-link">Inspirasi</a>
+            <a href="#fitur" className="desktop-nav-link">Keunggulan</a>
+            <a href="#faq" className="desktop-nav-link">Bantuan</a>
+          </div>
+          <div className="hidden items-center gap-2 lg:flex"><a href="#" className="desktop-login-link px-4 py-3 text-[15px] font-semibold xl:text-base">Masuk</a><a href="#mulai" className="rounded-full bg-[#F5F0E7] px-6 py-3.5 text-[15px] font-bold text-[#071727] shadow-[inset_0_1px_0_rgba(255,255,255,.45),0_8px_20px_rgba(0,0,0,.14)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#D6B56F] xl:text-base">Buat Ruang</a></div>
+        </nav>
+      </header>
+      </div>
+
+      <section id="beranda" className="relative scroll-mt-24">
+        <div className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-[#D6B56F]/[.055] blur-[120px]" />
+        <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 py-[4.5rem] sm:px-8 sm:py-20 lg:grid-cols-[1.03fr_.97fr] lg:px-12 lg:py-24">
+          <div className="relative z-10 text-center lg:text-left">
+            <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#D6B56F]/25 bg-[#0A1D30]/65 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D6B56F]"><span className="h-1.5 w-1.5 rounded-full bg-[#D6B56F]" />Cerita dari setiap sudut</p>
+            <h1 className="hero-heading mx-auto max-w-3xl text-[3rem] leading-[.98] font-extrabold tracking-[-0.055em] min-[380px]:text-[3.35rem] sm:text-6xl lg:mx-0 lg:text-[4.7rem]">
+              Satu acara.<br />Banyak sudut.<br /><span className="editorial-accent font-serif font-semibold italic tracking-[-0.035em]">Satu cerita.</span>
+            </h1>
+            <p className="mx-auto mt-7 max-w-xl text-base leading-7 text-[#AEB8BE] sm:text-lg sm:leading-8 lg:mx-0">Bagikan satu QR di acaramu. Setiap orang bisa mengambil foto langsung dari browser, dan semua momen akan terkumpul dalam satu album bersama.</p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+              <a href="#mulai" className="group flex h-14 items-center justify-center gap-3 rounded-full bg-[#F5F0E7] px-7 font-semibold text-[#071727] shadow-[0_10px_28px_rgba(0,0,0,.14)] transition hover:-translate-y-0.5 hover:bg-[#D6B56F]">Buat Ruang <IkonPanah /></a>
+              <a href="#cara-kerja" className="flex h-14 items-center justify-center rounded-full border border-[#F5F0E7]/[.16] bg-transparent px-7 font-semibold text-[#F5F0E7] transition hover:border-[#F5F0E7]/30 hover:bg-[#F5F0E7]/[.04]">Lihat Alur</a>
+            </div>
+            <p className="mt-5 text-sm text-[#AEB8BE]/75">Tanpa install aplikasi · Cukup scan, foto, dan bagikan</p>
+          </div>
+
+          <div className="relative mx-auto h-[430px] w-full max-w-[560px] sm:h-[530px]" aria-label="Pratinjau album acara">
+            <div className="absolute left-[2%] top-[11%] w-[46%] -rotate-6 rounded-[1.25rem] border border-[#F5F0E7]/10 bg-[#F5F0E7] p-2.5 pb-11 shadow-[0_24px_60px_rgba(0,0,0,.24)] sm:pb-14">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[#102A42] bg-cover bg-no-repeat" style={{ backgroundImage: "url('/testimonial-moments.webp')", backgroundPosition: "0% center", backgroundSize: "300% 100%" }} role="img" aria-label="Momen hangat keluarga dan sahabat di acara pernikahan"><div className="absolute inset-0 bg-[#071727]/[.08]" /><div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-[#071727]/10" /></div><p className="absolute bottom-3 left-0 w-full text-center font-serif text-xs italic text-[#071727] sm:text-sm">dari meja sahabat</p>
+            </div>
+            <div className="absolute bottom-[3%] right-[3%] w-[48%] rotate-[5deg] rounded-[1.25rem] border border-[#F5F0E7]/10 bg-[#F5F0E7] p-2.5 pb-11 shadow-[0_24px_60px_rgba(0,0,0,.26)] sm:pb-14">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[#A98242] bg-cover bg-no-repeat" style={{ backgroundImage: "url('/testimonial-moments.webp')", backgroundPosition: "50% center", backgroundSize: "300% 100%" }} role="img" aria-label="Senyum spontan dalam perayaan ulang tahun"><div className="absolute inset-0 bg-[#071727]/[.06]" /><div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-[#071727]/10" /></div><p className="absolute bottom-3 left-0 w-full text-center font-serif text-xs italic text-[#071727] sm:text-sm">senyum yang tak terencana</p>
+            </div>
+            <div className="absolute right-0 top-[3%] rounded-2xl border border-[#F5F0E7]/10 bg-[#0A1D30] p-3 shadow-[0_20px_45px_rgba(0,0,0,.25)] sm:p-4">
+              <div className="grid h-16 w-16 grid-cols-5 gap-1 rounded-lg bg-[#F5F0E7] p-2 sm:h-20 sm:w-20">{Array.from({ length: 25 }).map((_, index) => <span key={index} className={`rounded-[1px] ${polaQR.includes(index) ? "bg-[#071727]" : "bg-transparent"}`} />)}</div>
+              <p className="mt-2 text-center text-[9px] font-bold uppercase tracking-[.15em] text-[#AEB8BE]">Scan &amp; kirim</p>
+            </div>
+            <div className="absolute bottom-[5%] left-0 flex items-center gap-3 rounded-2xl border border-[#F5F0E7]/10 bg-[#0A1D30]/95 p-3 pr-5 shadow-[0_18px_42px_rgba(0,0,0,.25)] backdrop-blur"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#D6B56F] text-[#071727]"><IkonKamera className="h-5 w-5" /></span><div><p className="text-sm font-semibold">Foto baru masuk</p><p className="text-xs text-[#AEB8BE]">Ditambahkan oleh tamu</p></div></div>
+            <div className="absolute left-[34%] top-[45%] hidden w-44 rounded-2xl border border-[#F5F0E7]/10 bg-[#0A1D30] p-3 shadow-[0_18px_42px_rgba(0,0,0,.25)] sm:block"><div className="mb-2 flex items-center justify-between"><p className="text-[10px] font-semibold">Album hari ini</p><span className="text-[9px] text-[#D6B56F]">24 foto</span></div><div className="grid grid-cols-3 gap-1">{["0% center", "50% center", "100% center", "100% center", "0% center", "50% center"].map((posisi, index) => <span key={index} className="aspect-square rounded-md bg-cover bg-no-repeat ring-1 ring-inset ring-[#F5F0E7]/10" style={{ backgroundImage: "url('/testimonial-moments.webp')", backgroundPosition: posisi, backgroundSize: "300% 100%" }} />)}</div></div>
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section id="cara-kerja" className="scroll-mt-20 px-5 py-[4.5rem] sm:px-8 sm:py-24 lg:px-12 lg:py-28"><div className="mx-auto max-w-7xl"><div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[.22em] text-[#D6B56F]">Alur</p><h2 className="mt-4 text-4xl font-bold tracking-[-.04em] sm:text-5xl">Alurnya <span className="font-serif font-normal italic text-[#D6B56F]">sederhana.</span></h2><p className="mt-5 text-lg leading-8 text-[#AEB8BE]">Satu QR untuk mengumpulkan cerita dari setiap sudut acara.</p></div><div className="relative mt-12 grid gap-4 md:mt-16 md:grid-cols-3 md:gap-5"><div className="pointer-events-none absolute top-[3.1rem] right-[16%] left-[16%] hidden h-px bg-[#D6B56F]/20 md:block" />{langkah.map((item) => <article key={item.nomor} className="group relative overflow-hidden rounded-[1.5rem] border border-[#F5F0E7]/[.08] bg-[#0A1D30] p-6 shadow-[inset_0_1px_0_rgba(245,240,231,.025),0_14px_36px_rgba(0,0,0,.1)] transition duration-300 hover:-translate-y-1 hover:border-[#D6B56F]/25 hover:shadow-[inset_0_1px_0_rgba(245,240,231,.04),0_20px_42px_rgba(0,0,0,.14)] sm:p-8"><span className="pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full border border-[#D6B56F]/[.07] transition-transform duration-500 group-hover:scale-110" /><div className="relative flex items-center justify-between"><span className="grid h-12 w-12 place-items-center rounded-[.9rem] border border-[#D6B56F]/20 bg-[#D6B56F]/[.08] text-[#D6B56F]"><IkonLangkah nama={item.ikon} /></span><span className="font-serif text-2xl italic text-[#D6B56F]">{item.nomor}</span></div><div className="relative mt-9 border-t border-[#F5F0E7]/[.07] pt-7 sm:mt-10"><h3 className="text-xl font-bold tracking-[-.02em]">{item.judul}</h3><p className="mt-3 max-w-sm leading-7 text-[#AEB8BE]">{item.deskripsi}</p></div></article>)}</div></div></section>
+
+      <section id="untuk-acara" className="scroll-mt-20 border-y border-[#F5F0E7]/[.07] bg-[#0A1D30]/55 px-5 py-[4.5rem] sm:px-8 sm:py-24 lg:px-12"><div className="mx-auto max-w-7xl"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="text-xs font-bold uppercase tracking-[.22em] text-[#D6B56F]">Momen Acara</p><h2 className="mt-4 text-4xl font-bold tracking-[-.04em] sm:text-5xl">Cocok untuk berbagai acara.</h2></div><p className="max-w-md leading-7 text-[#AEB8BE]">Dari hari yang intim hingga perayaan bersama banyak orang, setiap sudut layak disimpan.</p></div><div className="-mx-5 mt-10 flex snap-x gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6">{jenisAcara.map((acara, index) => <article key={acara.nama} className="group relative min-h-[178px] min-w-[172px] snap-start overflow-hidden rounded-2xl border border-[#F5F0E7]/10 bg-[#102A42] p-5 shadow-[inset_0_1px_0_rgba(245,240,231,.025),0_12px_28px_rgba(0,0,0,.08)] transition duration-300 hover:-translate-y-1 hover:border-[#D6B56F]/30 hover:shadow-[inset_0_1px_0_rgba(245,240,231,.04),0_18px_36px_rgba(0,0,0,.13)] sm:min-w-0"><span className="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full border border-[#D6B56F]/[.08] transition-transform duration-500 group-hover:scale-110" /><div className="relative flex items-start justify-between"><span className="grid h-10 w-10 place-items-center rounded-xl border border-[#D6B56F]/20 bg-[#D6B56F]/[.08] text-[#D6B56F] transition-colors duration-300 group-hover:bg-[#D6B56F]/15"><IkonAcara nama={acara.ikon} /></span><span className="font-serif text-sm italic text-[#D6B56F]/80">0{index + 1}</span></div><h3 className="relative mt-7 text-sm font-bold text-[#F5F0E7]">{acara.nama}</h3><p className="relative mt-2 text-xs leading-5 text-[#AEB8BE]">{acara.deskripsi}</p></article>)}</div></div></section>
+
+      <section id="contoh-album" className="scroll-mt-20 px-5 py-[4.5rem] sm:px-8 sm:py-24 lg:px-12 lg:py-28"><div className="mx-auto max-w-7xl"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[.22em] text-[#D6B56F]">Inspirasi Momen</p><h2 className="mt-4 text-4xl font-bold tracking-[-.04em] sm:text-5xl">Lihat bagaimana setiap cerita <span className="font-serif font-normal italic text-[#D6B56F]">menemukan tempatnya.</span></h2></div><p className="max-w-sm leading-7 text-[#AEB8BE]">Beberapa gambaran ruang momen untuk suasana acara yang berbeda.</p></div><div className="mt-12 grid gap-5 md:grid-cols-3">{contohAlbum.map((album, index) => <article key={album.judul} className="group rounded-[1.5rem] border border-[#F5F0E7]/10 bg-[#0A1D30] p-3 shadow-[0_16px_42px_rgba(0,0,0,.12)] transition duration-300 hover:-translate-y-1 hover:border-[#D6B56F]/20 hover:shadow-[0_22px_52px_rgba(0,0,0,.18)]"><div className="relative aspect-[4/3] overflow-hidden rounded-[1.1rem] bg-[#071727] p-3"><div className="grid h-full grid-cols-3 grid-rows-2 gap-2"><span className="col-span-2 row-span-2 rounded-lg bg-cover bg-no-repeat transition duration-500 group-hover:scale-[1.02]" style={{ backgroundImage: "url('/testimonial-moments.webp')", backgroundPosition: album.posisi, backgroundSize: "300% 100%" }} /><span className="rounded-lg bg-cover bg-no-repeat" style={{ backgroundImage: "url('/testimonial-moments.webp')", backgroundPosition: `${(index + 1) * 50}% center`, backgroundSize: "300% 100%" }} /><span className="rounded-lg bg-cover bg-no-repeat" style={{ backgroundImage: "url('/testimonial-moments.webp')", backgroundPosition: `${((index + 2) % 3) * 50}% center`, backgroundSize: "300% 100%" }} /></div><div className="pointer-events-none absolute inset-3 rounded-lg bg-gradient-to-t from-[#071727]/35 via-transparent to-transparent" /><span className="absolute top-5 left-5 rounded-full border border-[#F5F0E7]/10 bg-[#071727]/75 px-2.5 py-1 text-[10px] font-medium backdrop-blur">{album.kategori}</span><span className="absolute right-5 bottom-5 font-serif text-lg italic text-[#F5F0E7]/90">0{index + 1}</span></div><div className="p-4 pb-3"><h3 className="text-xl font-bold">{album.judul}</h3><p className="mt-2 text-sm leading-6 text-[#AEB8BE]">{album.ringkasan}</p><p className="mt-4 text-xs text-[#D6B56F]">{album.statistik}</p><a href="#contoh-album" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#F5F0E7] transition group-hover:text-[#D6B56F]">Lihat Inspirasi <IkonPanah /></a></div></article>)}</div></div></section>
+
+      <section id="fitur" className="scroll-mt-20 bg-[#0A1D30]/55 px-5 py-[4.5rem] sm:px-8 sm:py-24 lg:px-12 lg:py-28"><div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[.8fr_1.2fr] lg:items-start lg:gap-14"><div className="lg:sticky lg:top-28"><p className="text-xs font-bold uppercase tracking-[.22em] text-[#D6B56F]">Keunggulan Ruang Momen</p><h2 className="mt-4 text-4xl leading-tight font-bold tracking-[-.045em] sm:text-5xl">Kenapa banyak momen terasa <span className="font-serif font-normal italic text-[#D6B56F]">lebih lengkap di sini?</span></h2><p className="mt-5 max-w-md leading-7 text-[#AEB8BE]">Setiap bagian dirancang agar berbagi foto terasa sederhana, familiar, dan nyaman.</p><div className="mt-8 hidden items-center gap-3 text-xs font-semibold uppercase tracking-[.16em] text-[#D9D6CE] lg:flex"><span className="h-px w-10 bg-[#D6B56F]/55" />Dirancang untuk semua tamu</div></div><div className="grid gap-4 sm:grid-cols-2">{fitur.map((item, index) => <article key={item.judul} className={`group relative overflow-hidden rounded-[1.5rem] border border-[#F5F0E7]/[.08] bg-[#102A42] p-7 shadow-[inset_0_1px_0_rgba(245,240,231,.025),0_12px_30px_rgba(0,0,0,.08)] transition duration-300 hover:-translate-y-1 hover:border-[#D6B56F]/25 hover:shadow-[inset_0_1px_0_rgba(245,240,231,.04),0_18px_40px_rgba(0,0,0,.13)] sm:p-8 ${index === 4 ? "sm:col-span-2 sm:grid sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-7" : ""}`}><span className="pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full border border-[#D6B56F]/[.07] transition-transform duration-500 group-hover:scale-110" /><div className={`relative flex items-start justify-between sm:block ${index === 4 ? "sm:static" : ""}`}><span className="grid h-12 w-12 place-items-center rounded-xl border border-[#D6B56F]/15 bg-[#D6B56F]/[.07] text-[#D6B56F] transition-colors duration-300 group-hover:bg-[#D6B56F]/[.13]"><IkonFitur nama={item.ikon} /></span><span className={`font-serif text-sm italic text-[#D6B56F]/70 ${index === 4 ? "sm:absolute sm:top-8 sm:right-8" : "sm:absolute sm:top-0 sm:right-0"}`}>0{index + 1}</span></div><div className={`relative ${index === 4 ? "mt-6 sm:mt-0" : "mt-7"}`}><h3 className="text-xl font-bold">{item.judul}</h3><p className="mt-3 leading-7 text-[#AEB8BE]">{item.deskripsi}</p></div><div className={`relative flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[.13em] text-[#D6B56F] ${index === 4 ? "mt-6 sm:mt-0 sm:justify-self-end" : "mt-7"}`}><span className="h-1.5 w-1.5 rounded-full bg-[#D6B56F] shadow-[0_0_0_4px_rgba(214,181,111,.08)]" />{item.sorotan}</div></article>)}</div></div></section>
+
+      <section className="px-5 py-[4.5rem] sm:px-8 sm:py-24 lg:px-12 lg:py-28"><div className="mx-auto max-w-6xl"><div className="grid gap-5 md:grid-cols-[1fr_auto] md:items-end"><div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[.22em] text-[#D6B56F]">Cerita Mereka</p><h2 className="mt-4 text-4xl font-bold tracking-[-.04em] sm:text-5xl">Pengalaman dari momen yang <span className="font-serif font-normal italic text-[#D6B56F]">dibagikan bersama.</span></h2></div><p className="hidden max-w-xs border-l border-[#D6B56F]/30 pl-5 text-sm leading-6 text-[#AEB8BE] md:block">Cerita kecil dari orang-orang yang ikut melihat, merayakan, dan mengabadikan hari itu.</p></div><div className="-mx-5 mt-12 flex snap-x gap-4 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">{testimonial.map((item, index) => <figure key={item.nama} className="group flex min-w-[82vw] snap-center flex-col overflow-hidden rounded-[1.75rem] border border-[#F5F0E7]/[.09] bg-[#0A1D30] p-2.5 shadow-[inset_0_1px_0_rgba(245,240,231,.025),0_16px_38px_rgba(0,0,0,.11)] transition duration-300 hover:-translate-y-1 hover:border-[#D6B56F]/25 hover:shadow-[inset_0_1px_0_rgba(245,240,231,.04),0_22px_48px_rgba(0,0,0,.16)] sm:min-w-0"><div className="relative aspect-[4/3] overflow-hidden rounded-[1.25rem] bg-[#102A42] bg-no-repeat transition-transform duration-500 group-hover:scale-[1.01]" style={{ backgroundImage: "url('/testimonial-moments.webp')", backgroundPosition: item.posisi, backgroundSize: "300% auto" }} role="img" aria-label={`Momen ${item.acara.toLowerCase()} bernuansa Indonesia`}><div className="absolute inset-0 bg-gradient-to-t from-[#071727]/45 via-transparent to-transparent" /><span className="absolute top-3 left-3 rounded-full border border-[#F5F0E7]/15 bg-[#071727]/70 px-3 py-1.5 text-[10px] font-semibold text-[#F5F0E7] backdrop-blur-md">{item.acara}</span><span className="absolute right-4 bottom-3 font-serif text-lg italic text-[#D6B56F]">0{index + 1}</span></div><div className="flex flex-1 flex-col p-5 sm:p-6"><blockquote className="flex-1"><span className="block font-serif text-5xl leading-[.65] text-[#D6B56F]/75" aria-hidden="true">“</span><p className="mt-3 font-serif text-lg leading-7 font-normal italic text-[#F5F0E7] sm:text-xl sm:leading-8">{item.kutipan}</p></blockquote><figcaption className="mt-7 flex items-center gap-3 border-t border-[#F5F0E7]/[.08] pt-5"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#D6B56F]/20 bg-[#D6B56F]/[.08] font-serif text-sm italic text-[#D6B56F]">{item.nama.split(" ").map((kata) => kata[0]).join("").replace("&", "").slice(0, 2)}</span><span><span className="block text-sm font-bold">{item.nama}</span><span className="mt-1 flex flex-wrap gap-x-2 text-[11px] text-[#AEB8BE]"><span>{item.statistik}</span></span></span></figcaption></div></figure>)}</div></div></section>
+
+      <section id="faq" className="scroll-mt-20 border-y border-[#F5F0E7]/[.07] bg-[#0A1D30]/55 px-5 py-[4.5rem] sm:px-8 sm:py-24 lg:px-12 lg:py-28"><div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[.7fr_1.3fr] lg:gap-20"><div><p className="text-xs font-bold uppercase tracking-[.22em] text-[#D6B56F]">Pertanyaan Umum</p><h2 className="mt-4 text-4xl font-bold tracking-[-.04em] sm:text-5xl">Yang mungkin ingin kamu ketahui.</h2></div><div className="divide-y divide-[#F5F0E7]/10 border-y border-[#F5F0E7]/10">{pertanyaan.map((item) => <details key={item.tanya} className="group"><summary className="flex min-h-20 cursor-pointer list-none items-center justify-between gap-5 py-5 font-semibold"><span>{item.tanya}</span><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[#F5F0E7]/10 text-[#D6B56F] transition-transform group-open:rotate-45">+</span></summary><p className="max-w-2xl pb-6 pr-12 leading-7 text-[#AEB8BE]">{item.jawab}</p></details>)}</div></div></section>
+
+      <section id="mulai" className="scroll-mt-20 px-5 py-[4.5rem] sm:px-8 sm:py-24 lg:px-12 lg:py-28"><div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-[#D6B56F]/[.18] bg-[#0A1D30] px-6 py-16 text-center text-[#F5F0E7] shadow-[0_24px_70px_rgba(0,0,0,.16)] sm:px-12 sm:py-20"><div className="pointer-events-none absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D6B56F]/[.05] blur-[90px]" /><div className="relative mx-auto max-w-3xl"><p className="text-xs font-bold uppercase tracking-[.22em] text-[#A98242]">Simpan lebih banyak cerita</p><h2 className="mt-4 text-4xl font-bold tracking-[-.045em] sm:text-5xl">Momen yang mungkin terlewat, kini punya tempat untuk kembali.</h2><p className="mx-auto mt-5 max-w-xl text-base leading-7 text-[#AEB8BE] sm:text-lg">Kadang foto terbaik bukan dari fotografer, tapi dari orang-orang yang ikut menikmati harimu.</p><a href="#beranda" className="group mx-auto mt-8 flex h-14 w-fit items-center gap-3 rounded-full bg-[#F5F0E7] px-7 font-semibold text-[#071727] shadow-[0_10px_28px_rgba(0,0,0,.14)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#D6B56F]">Buat Ruang Pertamamu <IkonPanah /></a></div></div></section>
+
+      <footer id="tentang-footer" className="scroll-mt-24 border-t border-[#F5F0E7]/[.07] px-5 py-12 sm:px-8 lg:px-12"><div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-8 gap-y-10 text-left lg:grid-cols-12"><div className="col-span-2 lg:col-span-5"><a href="#beranda" className="inline-flex items-center gap-2.5 font-semibold"><BrandLockup className="sm:scale-105 sm:origin-left" /></a><p className="mt-4 max-w-xs text-sm leading-6 text-[#AEB8BE]">Satu QR. Banyak sudut. Satu cerita.</p></div><div className="lg:col-span-2"><p className="text-xs font-semibold uppercase tracking-[.16em] text-[#F5F0E7]">Jelajahi</p><div className="mt-4 flex flex-col gap-3 text-sm text-[#AEB8BE]"><a href="#cara-kerja" className="transition hover:text-[#F5F0E7]">Alur</a><a href="#contoh-album" className="transition hover:text-[#F5F0E7]">Inspirasi</a><a href="#fitur" className="transition hover:text-[#F5F0E7]">Keunggulan</a></div></div><div className="lg:col-span-3"><p className="text-xs font-semibold uppercase tracking-[.16em] text-[#F5F0E7]">Momen Acara</p><div className="mt-4 flex flex-col gap-3 text-sm text-[#AEB8BE]"><a href="#untuk-acara" className="transition hover:text-[#F5F0E7]">Pernikahan</a><a href="#untuk-acara" className="transition hover:text-[#F5F0E7]">Ulang Tahun</a><a href="#untuk-acara" className="transition hover:text-[#F5F0E7]">Gathering</a><a href="#untuk-acara" className="transition hover:text-[#F5F0E7]">Wisuda</a><a href="#untuk-acara" className="transition hover:text-[#F5F0E7]">Reuni</a><a href="#untuk-acara" className="transition hover:text-[#F5F0E7]">Acara Kantor</a></div></div><div className="lg:col-span-2"><p className="text-xs font-semibold uppercase tracking-[.16em] text-[#F5F0E7]">Bantuan</p><div className="mt-4 flex flex-col gap-3 text-sm text-[#AEB8BE]"><Link href="/#faq" className="transition hover:text-[#F5F0E7]">Pertanyaan Umum</Link><Link href="/privasi" className="transition hover:text-[#F5F0E7]">Kebijakan Privasi</Link><Link href="/syarat" className="transition hover:text-[#F5F0E7]">Syarat &amp; Ketentuan</Link><Link href="/kontak" className="transition hover:text-[#F5F0E7]">Kontak</Link></div></div><p className="col-span-2 flex flex-wrap items-baseline gap-x-1.5 border-t border-[#F5F0E7]/[.07] pt-6 text-sm text-[#AEB8BE]/70 lg:col-span-12"><span>© 2026 Ruang Momen. Semua hak dilindungi ·</span><span className="font-serif text-base font-normal italic tracking-[.04em] text-[#D6B56F]">iNcroet</span></p></div></footer>
+
+      <nav className="fixed right-0 bottom-0 left-0 z-50 px-3 pb-[calc(.75rem+env(safe-area-inset-bottom))] lg:hidden" aria-label="Navigasi bawah">
+        <div className="mx-auto grid h-[68px] w-full max-w-[400px] grid-cols-5 items-center rounded-[24px] border border-[#F5F0E7]/10 bg-[rgba(10,29,48,0.92)] px-1 shadow-[0_16px_42px_rgba(0,0,0,.34)] backdrop-blur-[18px]">
+          <a href="#beranda" className="flex min-h-12 flex-col items-center justify-center gap-1 text-[#F5F0E7]" aria-label="Beranda"><IkonNavigasi nama="beranda" /><span className="text-[9px] font-medium">Beranda</span></a>
+          <a href="#cara-kerja" className="flex min-h-12 flex-col items-center justify-center gap-1 text-[#AEB8BE] transition-colors hover:text-[#F5F0E7]" aria-label="Alur"><IkonNavigasi nama="cara" /><span className="text-[9px] font-medium">Alur</span></a>
+          <a href="#mulai" className="group -translate-y-2.5 flex min-h-16 flex-col items-center justify-center gap-1" aria-label="Buat Ruang"><span className="grid h-[52px] w-[52px] place-items-center rounded-[18px] border border-[#F5F0E7]/10 bg-[linear-gradient(145deg,#F1DDA7_0%,#D6B56F_52%,#A98242_100%)] text-[#071727] shadow-[inset_0_1px_0_rgba(245,240,231,.3),0_9px_22px_rgba(0,0,0,.24)] transition-transform group-active:scale-95"><BrandIcon className="h-9 w-9 drop-shadow-[0_2px_5px_rgba(7,23,39,.3)]" /></span><span className="text-[9px] font-semibold text-[#F5F0E7]">Buat Ruang</span></a>
+          <a href="#contoh-album" className="flex min-h-12 flex-col items-center justify-center gap-1 text-[#AEB8BE] transition-colors hover:text-[#F5F0E7]" aria-label="Inspirasi"><IkonNavigasi nama="contoh" /><span className="text-[9px] font-medium">Inspirasi</span></a>
+          <a href="#faq" className="flex min-h-12 flex-col items-center justify-center gap-1 text-[#AEB8BE] transition-colors hover:text-[#F5F0E7]" aria-label="Bantuan"><IkonNavigasi nama="faq" /><span className="text-[9px] font-medium">Bantuan</span></a>
+        </div>
+      </nav>
+    </main>
   );
 }

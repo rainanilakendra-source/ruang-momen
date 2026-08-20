@@ -1,26 +1,192 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #071727;
+  --foreground: #f5f0e7;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-jakarta);
+  --font-serif: var(--font-fraunces);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-jakarta), Arial, Helvetica, sans-serif;
+}
+
+/* Menjaga ritme gelap–terang antarseksi setelah trust strip dihapus. */
+#cara-kerja,
+#contoh-album,
+main > section:not([id]),
+#mulai {
+  background-color: rgba(10, 29, 48, 0.55);
+  border-block: 1px solid rgba(245, 240, 231, 0.07);
+}
+
+#untuk-acara,
+#fitur,
+#faq {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.hero-heading {
+  -webkit-text-stroke: 0.25px rgba(245, 240, 231, 0.12);
+  text-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.025),
+    0 12px 30px rgba(0, 0, 0, 0.26);
+}
+
+.desktop-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: #ddd8ce;
+  transition: all 200ms ease;
+}
+
+.desktop-nav-link::after {
+  position: absolute;
+  right: 25%;
+  bottom: 0.2rem;
+  left: 25%;
+  height: 2px;
+  border-radius: 999px;
+  background: #d6b56f;
+  content: "";
+  opacity: 0;
+  transform: scaleX(0.45);
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+
+.desktop-nav-link:hover,
+.desktop-nav-link:focus-visible {
+  color: #f5f0e7;
+  text-shadow: 0 2px 12px rgba(214, 181, 111, 0.16);
+}
+
+.desktop-nav-link:hover::after,
+.desktop-nav-link:focus-visible::after,
+details[open] > .desktop-nav-link::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+details[open] > .desktop-nav-link {
+  color: #d6b56f;
+}
+
+.desktop-nav-link svg {
+  color: #ddd8ce;
+  transition: color 200ms ease;
+}
+
+.desktop-nav-link:hover svg,
+.desktop-nav-link:focus-visible svg {
+  color: #f5f0e7;
+}
+
+details[open] > .desktop-nav-link svg {
+  color: #d6b56f;
+}
+
+.desktop-login-link {
+  color: #ddd8ce;
+  transition: all 200ms ease;
+}
+
+.desktop-login-link:hover,
+.desktop-login-link:focus-visible {
+  color: #f5f0e7;
+  text-shadow: 0 2px 12px rgba(214, 181, 111, 0.16);
+}
+
+@media (min-width: 64rem) {
+  .desktop-site-header .brand-logo-image {
+    filter:
+      brightness(0.9)
+      saturate(0.96)
+      contrast(1.03)
+      drop-shadow(1px 0 0 rgba(214, 181, 111, 0.06))
+      drop-shadow(-1px 0 0 rgba(214, 181, 111, 0.06))
+      drop-shadow(0 1px 0 rgba(214, 181, 111, 0.06))
+      drop-shadow(0 -1px 0 rgba(214, 181, 111, 0.06))
+      drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+  }
+
+  .desktop-site-header {
+    width: 100%;
+    transition:
+      top 300ms cubic-bezier(0.22, 1, 0.36, 1),
+      width 300ms cubic-bezier(0.22, 1, 0.36, 1),
+      max-width 300ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-radius 300ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .desktop-navbar-inner {
+    transition: height 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .desktop-site-header.is-floating {
+    position: fixed;
+    top: 18px;
+    left: 50%;
+    width: calc(100% - 48px);
+    max-width: 1240px;
+    transform: translateX(-50%);
+    border: 1px solid rgba(214, 181, 111, 0.2);
+    border-radius: 26px;
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.2);
+  }
+
+  .desktop-site-header.is-floating .desktop-navbar-inner {
+    height: 68px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-site-header,
+  .desktop-navbar-inner {
+    transition: none;
+  }
+}
+
+::selection {
+  background: #d6b56f;
+  color: #071727;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.editorial-accent {
+  background: linear-gradient(135deg, #f1dda7 0%, #d6b56f 48%, #a98242 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.03),
+    0 10px 28px rgba(0, 0, 0, 0.28);
+}
+
+details[open] > summary {
+  color: #f5f0e7;
+}
+
+#faq details[open] {
+  background: rgba(16, 42, 66, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(214, 181, 111, 0.14);
 }
