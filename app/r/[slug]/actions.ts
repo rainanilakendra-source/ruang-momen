@@ -10,12 +10,14 @@ import { validateGuestName } from "../../lib/guest-name";
 
 const MIME_EXTENSIONS = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as const;
 
-export type UploadPhotoState =
-  | { status: "idle"; message: null }
-  | { status: "success" | "error"; message: string };
+export type UploadPhotoResult =
+  | { status: "success"; message: string }
+  | { status: "error"; message: string; retryable: boolean };
+
+const CLIENT_UPLOAD_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function selectedPhoto(formData: FormData): File | null {
-  for (const field of ["cameraPhoto", "galleryPhoto"]) {
+  for (const field of ["queuePhoto", "cameraPhoto", "galleryPhoto"]) {
     const value = formData.get(field);
     if (value instanceof File && value.size > 0) return value;
   }
@@ -33,23 +35,35 @@ function safeOriginalName(name: string): string {
   return (baseName || "momen").slice(0, 255);
 }
 
-export async function uploadGuestPhoto(slug: string, source: string | null, _previousState: UploadPhotoState, formData: FormData): Promise<UploadPhotoState> {
+export async function uploadGuestPhoto(slug: string, formData: FormData): Promise<UploadPhotoResult> {
   const event = await prisma.event.findUnique({ where: { slug }, select: { id: true } });
-  if (!event) return { status: "error", message: "Ruang acara tidak ditemukan." };
+  if (!event) return { status: "error", message: "Ruang acara tidak ditemukan.", retryable: false };
 
   const guestName = validateGuestName(formData.get("guestName"));
-  if (!guestName.ok) return { status: "error", message: guestName.message };
+  if (!guestName.ok) return { status: "error", message: guestName.message, retryable: false };
+
+  const sourceValue = formData.get("source");
+  const source = normalizePhotoSource(typeof sourceValue === "string" ? sourceValue : null);
+  const clientUploadIdValue = formData.get("clientUploadId");
+  const clientUploadId = typeof clientUploadIdValue === "string" ? clientUploadIdValue : "";
+  if (!CLIENT_UPLOAD_ID_PATTERN.test(clientUploadId)) return { status: "error", message: "Identitas upload tidak valid.", retryable: false };
 
   const photo = selectedPhoto(formData);
-  if (!photo) return { status: "error", message: "Pilih satu foto untuk dikirim." };
-  if (photo.size > MAX_UPLOAD_BYTES) return { status: "error", message: "Ukuran foto maksimal 25 MB." };
+  if (!photo) return { status: "error", message: "Pilih satu foto untuk dikirim.", retryable: false };
+  if (photo.size > MAX_UPLOAD_BYTES) return { status: "error", message: "Ukuran foto maksimal 25 MB.", retryable: false };
 
   const mimeType = photo.type as keyof typeof MIME_EXTENSIONS;
   const extension = MIME_EXTENSIONS[mimeType];
-  if (!extension) return { status: "error", message: "Gunakan foto berformat JPEG, PNG, atau WebP." };
+  if (!extension) return { status: "error", message: "Gunakan foto berformat JPEG, PNG, atau WebP.", retryable: false };
 
   const bytes = new Uint8Array(await photo.arrayBuffer());
-  if (!hasMatchingSignature(bytes, mimeType)) return { status: "error", message: "File ini bukan foto JPEG, PNG, atau WebP yang valid." };
+  if (!hasMatchingSignature(bytes, mimeType)) return { status: "error", message: "File ini bukan foto JPEG, PNG, atau WebP yang valid.", retryable: false };
+
+  const existingPhoto = await prisma.photo.findUnique({ where: { clientUploadId }, select: { eventId: true } });
+  if (existingPhoto) {
+    if (existingPhoto.eventId === event.id) return { status: "success", message: "Momen berhasil dikirim ke ruang ini." };
+    return { status: "error", message: "Foto tidak dapat dikirim.", retryable: false };
+  }
 
   // TODO: Add image optimization, thumbnail generation, EXIF orientation handling,
   // and Object Storage without modifying the original upload in this version.
@@ -59,14 +73,17 @@ export async function uploadGuestPhoto(slug: string, source: string | null, _pre
   try {
     await storage.save(storageKey, bytes);
   } catch {
-    return { status: "error", message: "Foto belum berhasil disimpan. Silakan coba lagi." };
+    return { status: "error", message: "Foto belum berhasil disimpan. Silakan coba lagi.", retryable: true };
   }
 
   try {
-    await prisma.photo.create({ data: { eventId: event.id, storageKey, originalName: safeOriginalName(photo.name), mimeType, sizeBytes: photo.size, source: normalizePhotoSource(source), guestName: guestName.value } });
+    await prisma.photo.create({ data: { eventId: event.id, storageKey, originalName: safeOriginalName(photo.name), mimeType, sizeBytes: photo.size, source, guestName: guestName.value, clientUploadId } });
   } catch {
     await storage.delete(storageKey).catch(() => undefined);
-    return { status: "error", message: "Foto belum berhasil dicatat. Silakan coba lagi." };
+    const racedPhoto = await prisma.photo.findUnique({ where: { clientUploadId }, select: { eventId: true } }).catch(() => null);
+    if (racedPhoto?.eventId === event.id) return { status: "success", message: "Momen berhasil dikirim ke ruang ini." };
+    if (racedPhoto) return { status: "error", message: "Foto tidak dapat dikirim.", retryable: false };
+    return { status: "error", message: "Foto belum berhasil dicatat. Silakan coba lagi.", retryable: true };
   }
   return { status: "success", message: "Momen berhasil dikirim ke ruang ini." };
 }
