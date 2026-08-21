@@ -5,6 +5,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { registerUser, type RegisterState } from "../daftar/actions";
 import { loginUser, type LoginState } from "../masuk/actions";
 import { AppIcon, type AppIconName } from "./app-icons";
+import { useI18n } from "./i18n-provider";
 
 type AuthMode = "masuk" | "daftar";
 
@@ -26,6 +27,7 @@ const initialRegisterState: RegisterState = { error: null };
 const initialLoginState: LoginState = { error: null };
 
 export function AuthForm({ mode }: { mode: AuthMode }) {
+  const { t } = useI18n();
   const isLogin = mode === "masuk";
   const [registerState, registerAction, isPending] = useActionState(
     registerUser,
@@ -48,13 +50,13 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
   return (
     <form className="mt-8 space-y-5" action={isLogin ? loginAction : registerAction} noValidate>
-      {!isLogin && <Field label="Nama" name="name" autoComplete="name" icon="user" placeholder="Nama lengkap" minLength={2} maxLength={80} />}
-      <Field label="Email" name="email" type="email" autoComplete="email" icon="mail" placeholder="nama@email.com" maxLength={254} />
+      {!isLogin && <Field label={t("auth.name")} name="name" autoComplete="name" icon="user" placeholder={t("auth.fullName")} minLength={2} maxLength={80} />}
+      <Field label={t("auth.email")} name="email" type="email" autoComplete="email" icon="mail" placeholder="nama@email.com" maxLength={254} />
       <div>
-        <Field label="Kata sandi" name="password" type="password" autoComplete={isLogin ? "current-password" : "new-password"} icon="lock" placeholder="Masukkan kata sandi" minLength={isLogin ? undefined : 10} maxLength={isLogin ? undefined : 128} />
-        {isLogin && <div className="mt-2 text-right"><button type="button" className="text-xs font-semibold text-[#D6B56F] transition hover:text-[#F1DDA7] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D6B56F]">Lupa kata sandi?</button></div>}
+        <Field label={t("auth.password")} name="password" type="password" autoComplete={isLogin ? "current-password" : "new-password"} icon="lock" placeholder={t("auth.passwordPlaceholder")} minLength={isLogin ? undefined : 10} maxLength={isLogin ? undefined : 128} />
+        {isLogin && <div className="mt-2 text-right"><button type="button" className="text-xs font-semibold text-[#D6B56F] transition hover:text-[#F1DDA7] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D6B56F]">{t("auth.forgotPassword")}</button></div>}
       </div>
-      {!isLogin && <Field label="Konfirmasi kata sandi" name="passwordConfirmation" type="password" autoComplete="new-password" icon="lock" placeholder="Ulangi kata sandi" minLength={10} maxLength={128} />}
+      {!isLogin && <Field label={t("auth.confirmPassword")} name="passwordConfirmation" type="password" autoComplete="new-password" icon="lock" placeholder={t("auth.repeatPassword")} minLength={10} maxLength={128} />}
 
       {authState.error && (
         <p ref={errorRef} role="alert" aria-live="assertive" tabIndex={-1} className="rounded-xl border border-red-300/20 bg-red-400/10 px-4 py-3 text-sm text-red-100 outline-none">
@@ -63,20 +65,20 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       )}
 
       <button type="submit" disabled={pending} className="flex min-h-12 w-full items-center justify-center rounded-xl bg-[#F5F0E7] px-5 text-sm font-bold text-[#071727] shadow-[0_10px_24px_rgba(0,0,0,.18)] transition hover:-translate-y-0.5 hover:bg-[#D6B56F] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D6B56F] disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0">
-        {isLogin ? pending ? "Memasuki ruang..." : "Masuk ke Ruang" : pending ? "Membuat akun..." : "Buat Akun"}
+        {isLogin ? pending ? t("auth.loggingIn") : t("auth.login") : pending ? t("auth.registering") : t("auth.register")}
       </button>
 
-      <div className="flex items-center gap-3 text-[11px] uppercase tracking-[.16em] text-[#AEB8BE]/65"><span className="h-px flex-1 bg-[#F5F0E7]/10" />atau<span className="h-px flex-1 bg-[#F5F0E7]/10" /></div>
+      <div className="flex items-center gap-3 text-[11px] uppercase tracking-[.16em] text-[#AEB8BE]/65"><span className="h-px flex-1 bg-[#F5F0E7]/10" />{t("auth.or")}<span className="h-px flex-1 bg-[#F5F0E7]/10" /></div>
 
       <button type="button" className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-[#F5F0E7]/12 bg-[#F5F0E7]/[.035] px-5 text-sm font-semibold text-[#F5F0E7] transition hover:border-[#D6B56F]/35 hover:bg-[#F5F0E7]/[.06] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D6B56F]">
         <span className="grid h-5 w-5 place-items-center rounded-full bg-[#F5F0E7] text-[11px] font-extrabold text-[#071727]" aria-hidden="true">G</span>
-        {isLogin ? "Masuk dengan Google" : "Daftar dengan Google"}
+        {isLogin ? t("auth.googleLogin") : t("auth.googleRegister")}
       </button>
 
       <p className="pt-1 text-center text-sm text-[#AEB8BE]">
-        {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}{" "}
+        {isLogin ? t("auth.noAccount") : t("auth.hasAccount")}{" "}
         <Link href={isLogin ? "/daftar" : "/masuk"} className="font-bold text-[#D6B56F] transition hover:text-[#F1DDA7] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D6B56F]">
-          {isLogin ? "Buat akun" : "Masuk"}
+          {isLogin ? t("auth.createAccount") : t("auth.loginLink")}
         </Link>
       </p>
     </form>

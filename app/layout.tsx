@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { I18nProvider } from "./_components/i18n-provider";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -31,7 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="id"
       className={`${jakarta.variable} ${fraunces.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col"><I18nProvider>{children}</I18nProvider></body>
     </html>
   );
 }

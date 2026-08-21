@@ -5,16 +5,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutUser } from "../dashboard/actions";
 import { AppIcon, type AppIconName } from "./app-icons";
+import { useI18n } from "./i18n-provider";
 
-type NavItem = { label: string; icon: AppIconName; href?: string; match?: string };
+type NavItem = { label: string; labelKey?: string; icon: AppIconName; href?: string; match?: string };
 
 const mainItems: NavItem[] = [
-  { label: "Beranda", icon: "home", href: "/dashboard", match: "/dashboard" },
-  { label: "Ruang Saya", icon: "spaces", href: "/dashboard/ruang", match: "/dashboard/ruang" },
-  { label: "Album", icon: "album", href: "/dashboard/album", match: "/dashboard/album" },
-  { label: "Buat Ruang", icon: "add", href: "/dashboard/ruang/baru", match: "/dashboard/ruang/baru" },
-  { label: "My Orders", icon: "billing", href: "/dashboard/orders", match: "/dashboard/orders" },
-  { label: "Akun", icon: "account" },
+  { label: "Beranda", labelKey: "navigation.home", icon: "home", href: "/dashboard", match: "/dashboard" },
+  { label: "Ruang Saya", labelKey: "navigation.rooms", icon: "spaces", href: "/dashboard/ruang", match: "/dashboard/ruang" },
+  { label: "Album", labelKey: "navigation.album", icon: "album", href: "/dashboard/album", match: "/dashboard/album" },
+  { label: "Buat Ruang", labelKey: "navigation.createRoom", icon: "add", href: "/dashboard/ruang/baru", match: "/dashboard/ruang/baru" },
+  { label: "Paket & Upgrade", labelKey: "navigation.plansUpgrade", icon: "billing", href: "/dashboard/paket", match: "/dashboard/paket" },
+  { label: "My Orders", labelKey: "navigation.orders", icon: "billing", href: "/dashboard/orders", match: "/dashboard/orders" },
+  { label: "Akun", labelKey: "common.account", icon: "account" },
 ];
 
 const bottomItems: NavItem[] = [
@@ -24,25 +26,29 @@ const bottomItems: NavItem[] = [
 function isActive(pathname: string, item: NavItem) {
   if (item.label === "Album") return pathname === "/dashboard/album" || pathname.endsWith("/album");
   if (item.label === "My Orders") return pathname.startsWith("/dashboard/orders");
+  if (item.label === "Paket & Upgrade") return pathname.startsWith("/dashboard/paket");
   if (item.label === "Admin Orders") return pathname.startsWith("/admin/orders");
   if (item.label === "Super Admin") return pathname.startsWith("/superadmin");
   return Boolean(item.match && pathname === item.match);
 }
 
 function SidebarItem({ item, pathname }: { item: NavItem; pathname: string }) {
+  const { t } = useI18n();
+  const label = item.labelKey ? t(item.labelKey) : item.label;
   const active = isActive(pathname, item);
   const className = `flex min-h-11 items-center gap-3 rounded-xl px-3.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D6B56F] ${active ? "border border-[#D6B56F]/20 bg-[#D6B56F]/10 text-[#F1DDA7]" : "border border-transparent text-[#AEB8BE] hover:bg-[#F5F0E7]/[.045] hover:text-[#F5F0E7]"}`;
-  const content = <><AppIcon name={item.icon} className="h-5 w-5 shrink-0" /><span>{item.label}</span>{!item.href && <span className="sr-only"> (belum tersedia)</span>}</>;
+  const content = <><AppIcon name={item.icon} className="h-5 w-5 shrink-0" /><span>{label}</span>{!item.href && <span className="sr-only"> (belum tersedia)</span>}</>;
 
   return item.href ? <Link href={item.href} className={className} aria-current={active ? "page" : undefined}>{content}</Link> : <button type="button" className={`${className} w-full cursor-not-allowed opacity-65`} disabled>{content}</button>;
 }
 
 export function DashboardNavigation({ showAdminOrders = false, showSuperAdmin = false }: { showAdminOrders?: boolean; showSuperAdmin?: boolean }) {
   const pathname = usePathname();
+  const { t } = useI18n();
   const visibleMainItems: NavItem[] = [
     ...mainItems,
-    ...(showAdminOrders ? [{ label: "Admin Orders", icon: "lock" as const, href: "/admin/orders", match: "/admin/orders" }] : []),
-    ...(showSuperAdmin ? [{ label: "Super Admin", icon: "lock" as const, href: "/superadmin", match: "/superadmin" }] : []),
+    ...(showAdminOrders ? [{ label: "Admin Orders", labelKey: "navigation.adminOrders", icon: "lock" as const, href: "/admin/orders", match: "/admin/orders" }] : []),
+    ...(showSuperAdmin ? [{ label: "Super Admin", labelKey: "navigation.superAdmin", icon: "lock" as const, href: "/superadmin", match: "/superadmin" }] : []),
   ];
 
   return (
@@ -57,7 +63,7 @@ export function DashboardNavigation({ showAdminOrders = false, showSuperAdmin = 
             {bottomItems.map((item) => <SidebarItem key={item.label} item={item} pathname={pathname} />)}
             <form action={logoutUser}>
               <button type="submit" className="flex min-h-11 w-full items-center gap-3 rounded-xl border border-transparent px-3.5 text-sm font-semibold text-[#AEB8BE] transition hover:bg-[#F5F0E7]/[.045] hover:text-[#F5F0E7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D6B56F]">
-                <AppIcon name="logout" className="h-5 w-5 shrink-0" /><span>Keluar</span>
+                <AppIcon name="logout" className="h-5 w-5 shrink-0" /><span>{t("common.logout")}</span>
               </button>
             </form>
           </div>
@@ -65,12 +71,13 @@ export function DashboardNavigation({ showAdminOrders = false, showSuperAdmin = 
       </aside>
 
       <nav className="fixed right-0 bottom-0 left-0 z-50 px-3 pb-[calc(.75rem+env(safe-area-inset-bottom))] lg:hidden" aria-label="Navigasi dashboard mobile">
-        <div className="mx-auto grid h-[68px] w-full max-w-[430px] grid-cols-5 items-center rounded-[24px] border border-[#F5F0E7]/10 bg-[rgba(10,29,48,.94)] px-1 shadow-[0_16px_42px_rgba(0,0,0,.36)] backdrop-blur-[18px]">
-          <MobileItem label="Beranda" icon="home" href="/dashboard" active={pathname === "/dashboard"} />
-          <MobileItem label="Ruang" icon="spaces" href="/dashboard/ruang" active={pathname === "/dashboard/ruang"} />
-          <MobileItem label="Buat" icon="add" href="/dashboard/ruang/baru" active={pathname === "/dashboard/ruang/baru"} central />
-          <MobileItem label="Album" icon="album" href="/dashboard/album" active={pathname.startsWith("/dashboard/album") || pathname.endsWith("/album")} />
-          {showSuperAdmin ? <MobileItem label="Admin" icon="lock" href="/superadmin" active={pathname.startsWith("/superadmin")} /> : showAdminOrders ? <MobileItem label="Admin" icon="lock" href="/admin/orders" active={pathname.startsWith("/admin/orders")} /> : <MobileItem label="Orders" icon="billing" href="/dashboard/orders" active={pathname.startsWith("/dashboard/orders")} />}
+        <div className="mx-auto grid h-[68px] w-full max-w-[460px] grid-cols-6 items-center rounded-[24px] border border-[#F5F0E7]/10 bg-[rgba(10,29,48,.94)] px-1 shadow-[0_16px_42px_rgba(0,0,0,.36)] backdrop-blur-[18px]">
+          <MobileItem label={t("navigation.home")} icon="home" href="/dashboard" active={pathname === "/dashboard"} />
+          <MobileItem label={t("navigation.rooms")} icon="spaces" href="/dashboard/ruang" active={pathname === "/dashboard/ruang"} />
+          <MobileItem label={t("common.create")} icon="add" href="/dashboard/ruang/baru" active={pathname === "/dashboard/ruang/baru"} central />
+          <MobileItem label={t("navigation.album")} icon="album" href="/dashboard/album" active={pathname.startsWith("/dashboard/album") || pathname.endsWith("/album")} />
+          <MobileItem label={t("navigation.plansUpgrade")} icon="billing" href="/dashboard/paket" active={pathname.startsWith("/dashboard/paket")} />
+          {showSuperAdmin ? <MobileItem label={t("navigation.superAdmin")} icon="lock" href="/superadmin" active={pathname.startsWith("/superadmin")} /> : showAdminOrders ? <MobileItem label={t("navigation.adminOrders")} icon="lock" href="/admin/orders" active={pathname.startsWith("/admin/orders")} /> : <MobileItem label={t("navigation.orders")} icon="billing" href="/dashboard/orders" active={pathname.startsWith("/dashboard/orders")} />}
         </div>
       </nav>
     </>

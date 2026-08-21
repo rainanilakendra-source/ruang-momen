@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "./i18n-provider";
 
 const items = [
   { label: "Buat ruang", description: "Mulai ruang acaramu dalam beberapa langkah.", target: "alur-buat-ruang", icon: "album" },
@@ -15,6 +16,7 @@ function DropdownIcon({ name }: { name: (typeof items)[number]["icon"] }) {
 }
 
 export function DesktopAlurDropdown() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -70,7 +72,7 @@ export function DesktopAlurDropdown() {
   return (
     <div ref={wrapperRef} className="group relative" onPointerEnter={cancelClose} onPointerLeave={scheduleClose} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) scheduleClose(); }}>
       <button ref={triggerRef} type="button" className="desktop-nav-link flex items-center gap-2 py-7" aria-expanded={open} aria-controls="desktop-alur-menu" onClick={() => setOpen((current) => !current)}>
-        Alur
+        {t("navigation.flow")}
         <svg className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m4 6 4 4 4-4" /></svg>
       </button>
       {open && (

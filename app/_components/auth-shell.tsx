@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-export function AuthShell({ eyebrow, title, description, children }: { eyebrow: string; title: string; description: string; children: ReactNode }) {
+export function AuthShell({ eyebrow, title, description, children }: { eyebrow: ReactNode; title: ReactNode; description: ReactNode; children: ReactNode }) {
   return (
     <main className="relative grid min-h-screen overflow-hidden bg-[#071727] px-5 py-8 text-[#F5F0E7] sm:px-8 sm:py-12 lg:grid-cols-[minmax(0,.9fr)_minmax(28rem,1.1fr)] lg:gap-12 lg:px-12">
       <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-[#D6B56F]/[.055] blur-[110px]" />
