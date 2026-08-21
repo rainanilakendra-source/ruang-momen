@@ -166,6 +166,47 @@ details[open] > .desktop-nav-link svg {
   }
 }
 
+@page {
+  size: A5 portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    width: 148mm;
+    height: 210mm;
+    margin: 0;
+    background: #071727;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .printable-qr-card,
+  .printable-qr-card * {
+    visibility: visible;
+  }
+
+  .print-controls {
+    display: none !important;
+  }
+
+  .printable-qr-card {
+    position: fixed;
+    inset: 0;
+    width: 148mm;
+    height: 210mm;
+    max-width: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
 ::selection {
   background: #d6b56f;
   color: #071727;

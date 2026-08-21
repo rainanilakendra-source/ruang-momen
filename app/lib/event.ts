@@ -7,7 +7,7 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   GRADUATION: "Wisuda",
   REUNION: "Reuni",
   CORPORATE: "Acara Kantor",
-  OTHER: "Lainnya",
+  OTHER: "Acara",
 };
 
 export const EVENT_TYPES = Object.keys(EVENT_TYPE_LABELS) as EventType[];
