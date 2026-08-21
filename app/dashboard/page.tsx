@@ -4,17 +4,21 @@ import { AppIcon, type AppIconName } from "../_components/app-icons";
 import { DashboardHeader } from "../_components/dashboard-shell";
 import { requireUser } from "../lib/auth";
 import { prisma } from "../lib/prisma";
+import { formatBytes } from "../lib/format";
 
 export const metadata: Metadata = { title: "Dashboard — Ruang Momen" };
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const eventCount = await prisma.event.count({ where: { ownerId: user.id } });
+  const [eventCount, photoStats] = await Promise.all([
+    prisma.event.count({ where: { ownerId: user.id } }),
+    prisma.photo.aggregate({ where: { event: { ownerId: user.id } }, _count: { _all: true }, _sum: { sizeBytes: true } }),
+  ]);
   const stats: { label: string; value: string; icon: AppIconName }[] = [
     { label: "Ruang Aktif", value: String(eventCount), icon: "spaces" },
-    { label: "Total Momen", value: "0", icon: "album" },
+    { label: "Total Momen", value: String(photoStats._count._all), icon: "album" },
     { label: "Tamu Bergabung", value: "0", icon: "account" },
-    { label: "Penyimpanan", value: "0 MB", icon: "billing" },
+    { label: "Penyimpanan", value: formatBytes(photoStats._sum.sizeBytes ?? 0), icon: "billing" },
   ];
   return (
     <>

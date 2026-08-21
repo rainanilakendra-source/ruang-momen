@@ -47,11 +47,27 @@ model Event {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
-  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner  User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  photos Photo[]
 
   @@index([ownerId])
   @@index([eventDate])
   @@map("events")
+}
+
+model Photo {
+  id           String   @id @default(cuid())
+  eventId      String   @map("event_id")
+  storageKey   String   @unique @map("storage_key")
+  originalName String   @map("original_name")
+  mimeType     String   @map("mime_type")
+  sizeBytes    Int      @map("size_bytes")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@map("photos")
 }
 
 model Session {
