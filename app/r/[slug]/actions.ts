@@ -7,6 +7,7 @@ import { storage } from "../../lib/storage";
 import { MAX_UPLOAD_BYTES } from "../../lib/upload";
 import { normalizePhotoSource } from "../../lib/photo-source";
 import { validateGuestName } from "../../lib/guest-name";
+import { EVENT_UPLOAD_STATUS_DETAILS, getEventUploadStatus } from "../../lib/event-upload";
 
 const MIME_EXTENSIONS = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as const;
 
@@ -36,8 +37,10 @@ function safeOriginalName(name: string): string {
 }
 
 export async function uploadGuestPhoto(slug: string, formData: FormData): Promise<UploadPhotoResult> {
-  const event = await prisma.event.findUnique({ where: { slug }, select: { id: true } });
+  const event = await prisma.event.findUnique({ where: { slug }, select: { id: true, guestUploadEnabled: true, uploadStartsAt: true, uploadEndsAt: true } });
   if (!event) return { status: "error", message: "Ruang acara tidak ditemukan.", retryable: false };
+  const uploadStatus = getEventUploadStatus(event);
+  if (uploadStatus !== "OPEN") return { status: "error", message: EVENT_UPLOAD_STATUS_DETAILS[uploadStatus].message, retryable: false };
 
   const guestName = validateGuestName(formData.get("guestName"));
   if (!guestName.ok) return { status: "error", message: guestName.message, retryable: false };

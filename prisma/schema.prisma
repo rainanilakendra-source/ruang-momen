@@ -38,14 +38,19 @@ enum EventType {
 }
 
 model Event {
-  id        String    @id @default(cuid())
-  ownerId   String    @map("owner_id")
-  name      String
-  slug      String    @unique
-  type      EventType
-  eventDate DateTime  @map("event_date") @db.Date
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  id                  String    @id @default(cuid())
+  ownerId             String    @map("owner_id")
+  name                String
+  slug                String    @unique
+  type                EventType
+  eventDate           DateTime  @map("event_date") @db.Date
+  coverStorageKey     String?   @map("cover_storage_key")
+  guestUploadEnabled  Boolean   @default(true) @map("guest_upload_enabled")
+  guestGalleryEnabled Boolean   @default(false) @map("guest_gallery_enabled")
+  uploadStartsAt      DateTime? @map("upload_starts_at")
+  uploadEndsAt        DateTime? @map("upload_ends_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
 
   owner  User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   photos Photo[]
