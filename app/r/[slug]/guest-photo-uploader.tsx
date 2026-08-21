@@ -12,6 +12,7 @@ import {
   type UploadQueueItem,
 } from "../../lib/upload-queue";
 import type { QrMode } from "../../lib/qr";
+import { useI18n } from "../../_components/i18n-provider";
 
 type UploadMethod = "camera" | "gallery";
 
@@ -43,6 +44,7 @@ function createClientUploadId(): string {
 }
 
 export function GuestPhotoUploader({ slug, mode, source }: { slug: string; mode: QrMode; source: string | null }) {
+  const { language } = useI18n();
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const processorActiveRef = useRef(false);
@@ -114,6 +116,7 @@ export function GuestPhotoUploader({ slug, mode, source }: { slug: string; mode:
           formData.append("clientUploadId", uploading.id);
           formData.append("guestName", uploading.guestName ?? "");
           formData.append("source", uploading.source ?? "");
+          formData.append("language", language);
           const result = await uploadGuestPhoto(slug, formData);
 
           if (result.status === "success") {
@@ -151,7 +154,7 @@ export function GuestPhotoUploader({ slug, mode, source }: { slug: string; mode:
     } finally {
       processorActiveRef.current = false;
     }
-  }, [loadQueue, slug]);
+  }, [language, loadQueue, slug]);
 
   useEffect(() => {
     if (initialized && online && items.some((item) => item.status === "queued")) queueMicrotask(() => { void processQueue(); });

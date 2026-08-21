@@ -8,6 +8,8 @@ import { MAX_UPLOAD_BYTES } from "../../lib/upload";
 import { normalizePhotoSource } from "../../lib/photo-source";
 import { validateGuestName } from "../../lib/guest-name";
 import { EVENT_UPLOAD_STATUS_DETAILS, getEventUploadStatus } from "../../lib/event-upload";
+import { isLanguage } from "../../lib/i18n";
+import { checkPlanLimit, PLAN_LIMIT_TYPES, PlanLimitExceededError } from "../../lib/plan-limits";
 
 const MIME_EXTENSIONS = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as const;
 
@@ -37,13 +39,15 @@ function safeOriginalName(name: string): string {
 }
 
 export async function uploadGuestPhoto(slug: string, formData: FormData): Promise<UploadPhotoResult> {
-  const event = await prisma.event.findUnique({ where: { slug }, select: { id: true, guestUploadEnabled: true, uploadStartsAt: true, uploadEndsAt: true } });
+  const event = await prisma.event.findUnique({ where: { slug }, select: { id: true, ownerId: true, guestUploadEnabled: true, uploadStartsAt: true, uploadEndsAt: true } });
   if (!event) return { status: "error", message: "Ruang acara tidak ditemukan.", retryable: false };
   const uploadStatus = getEventUploadStatus(event);
   if (uploadStatus !== "OPEN") return { status: "error", message: EVENT_UPLOAD_STATUS_DETAILS[uploadStatus].message, retryable: false };
 
   const guestName = validateGuestName(formData.get("guestName"));
   if (!guestName.ok) return { status: "error", message: guestName.message, retryable: false };
+  const languageValue = formData.get("language");
+  const language = isLanguage(languageValue) ? languageValue : "id";
 
   const sourceValue = formData.get("source");
   const source = normalizePhotoSource(typeof sourceValue === "string" ? sourceValue : null);
@@ -68,6 +72,14 @@ export async function uploadGuestPhoto(slug: string, formData: FormData): Promis
     return { status: "error", message: "Foto tidak dapat dikirim.", retryable: false };
   }
 
+  const proposedLimits = await Promise.all([
+    checkPlanLimit(event.ownerId, PLAN_LIMIT_TYPES.GUEST, { guestName: guestName.value, language }),
+    checkPlanLimit(event.ownerId, PLAN_LIMIT_TYPES.PHOTO, { additional: 1, language }),
+    checkPlanLimit(event.ownerId, PLAN_LIMIT_TYPES.STORAGE, { additional: photo.size, language }),
+  ]);
+  const blocked = proposedLimits.find((result) => !result.allowed);
+  if (blocked) return { status: "error", message: blocked.message, retryable: false };
+
   // TODO: Add image optimization, thumbnail generation, EXIF orientation handling,
   // and Object Storage without modifying the original upload in this version.
 
@@ -80,9 +92,19 @@ export async function uploadGuestPhoto(slug: string, formData: FormData): Promis
   }
 
   try {
-    await prisma.photo.create({ data: { eventId: event.id, storageKey, originalName: safeOriginalName(photo.name), mimeType, sizeBytes: photo.size, source, guestName: guestName.value, clientUploadId } });
-  } catch {
+    await prisma.$transaction(async (tx) => {
+      const limits = await Promise.all([
+        checkPlanLimit(event.ownerId, PLAN_LIMIT_TYPES.GUEST, { guestName: guestName.value, language, client: tx }),
+        checkPlanLimit(event.ownerId, PLAN_LIMIT_TYPES.PHOTO, { additional: 1, language, client: tx }),
+        checkPlanLimit(event.ownerId, PLAN_LIMIT_TYPES.STORAGE, { additional: photo.size, language, client: tx }),
+      ]);
+      const exceeded = limits.find((result) => !result.allowed);
+      if (exceeded) throw new PlanLimitExceededError(exceeded);
+      await tx.photo.create({ data: { eventId: event.id, storageKey, originalName: safeOriginalName(photo.name), mimeType, sizeBytes: photo.size, source, guestName: guestName.value, clientUploadId } });
+    }, { isolationLevel: "Serializable" });
+  } catch (error) {
     await storage.delete(storageKey).catch(() => undefined);
+    if (error instanceof PlanLimitExceededError) return { status: "error", message: error.result.message, retryable: false };
     const racedPhoto = await prisma.photo.findUnique({ where: { clientUploadId }, select: { eventId: true } }).catch(() => null);
     if (racedPhoto?.eventId === event.id) return { status: "success", message: "Momen berhasil dikirim ke ruang ini." };
     if (racedPhoto) return { status: "error", message: "Foto tidak dapat dikirim.", retryable: false };

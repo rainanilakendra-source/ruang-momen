@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireRole } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
 import { ROLES } from "../../lib/roles";
+import { comparePlanDisplayOrder } from "../../lib/plan-order";
 import { togglePlanStatus, updatePlanFeatures } from "./actions";
 
 export const metadata: Metadata = { title: "Plans — Super Admin Ruang Momen" };
@@ -11,9 +12,10 @@ const currency = new Intl.NumberFormat("id-ID", { style: "currency", currency: "
 export default async function PlansPage() {
   await requireRole(ROLES.SUPER_ADMIN);
   const [plans, features] = await Promise.all([
-    prisma.plan.findMany({ orderBy: [{ price: "asc" }, { name: "asc" }], select: { id: true, name: true, slug: true, price: true, maxGuests: true, maxPhotos: true, storageLimitMb: true, durationDays: true, active: true, features: { select: { featureId: true } } } }),
+    prisma.plan.findMany({ orderBy: [{ price: "asc" }, { name: "asc" }], select: { id: true, code: true, name: true, slug: true, price: true, maxGuests: true, maxPhotos: true, storageLimitMb: true, durationDays: true, active: true, features: { select: { featureId: true } } } }),
     prisma.feature.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, key: true, active: true } }),
   ]);
+  plans.sort(comparePlanDisplayOrder);
 
   return (
     <section className="mt-8">

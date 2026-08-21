@@ -20,7 +20,7 @@ export async function getActiveSubscription(userId: string) {
       status: true,
       startedAt: true,
       expiredAt: true,
-      plan: { select: { id: true, name: true, slug: true } },
+      plan: { select: { id: true, name: true, slug: true, maxGuests: true, maxPhotos: true, storageLimitMb: true } },
       order: { select: { id: true, orderNumber: true } },
     },
   });

@@ -1,6 +1,11 @@
-import Link from "next/link";
 import { DashboardHeader } from "../../_components/dashboard-shell";
+import { T } from "../../_components/i18n-provider";
+import { OrdersTable } from "../../_components/orders-table";
 import { requireUser } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
-const money = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
-export default async function OrdersPage() { const user = await requireUser(); const orders = await prisma.order.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, select: { id: true, orderNumber: true, amount: true, status: true, createdAt: true, plan: { select: { name: true } } } }); return <><DashboardHeader title="My Orders" description="Pantau pembayaran plan Ruang Momen." /><div className="mt-8 overflow-x-auto rounded-[1.5rem] border border-[#F5F0E7]/10 bg-[#0A1D30]"><table className="w-full min-w-[700px] text-left text-sm"><thead className="border-b border-[#F5F0E7]/10 text-[#AEB8BE]"><tr><th className="p-4">Order</th><th className="p-4">Plan</th><th className="p-4">Amount</th><th className="p-4">Status</th><th className="p-4">Created</th></tr></thead><tbody>{orders.map((order) => <tr key={order.id} className="border-b border-[#F5F0E7]/[.06]"><td className="p-4"><Link href={`/dashboard/orders/${order.id}`} className="font-bold text-[#F1DDA7]">{order.orderNumber}</Link></td><td className="p-4">{order.plan.name}</td><td className="p-4">{money.format(order.amount)}</td><td className="p-4">{order.status}</td><td className="p-4">{order.createdAt.toLocaleDateString("id-ID")}</td></tr>)}</tbody></table>{!orders.length && <p className="p-10 text-center text-[#AEB8BE]">Belum ada order.</p>}</div></>; }
+
+export default async function OrdersPage() {
+  const user = await requireUser();
+  const orders = await prisma.order.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, select: { id: true, orderNumber: true, amount: true, status: true, createdAt: true, plan: { select: { name: true } } } });
+  return <><DashboardHeader title={<T k="orders.title" />} description={<T k="orders.description" />} /><OrdersTable orders={orders.map((order) => ({ id: order.id, orderNumber: order.orderNumber, amount: order.amount, status: order.status, createdAt: order.createdAt.toISOString(), planName: order.plan.name }))} /></>;
+}

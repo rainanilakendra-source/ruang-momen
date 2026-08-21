@@ -15,8 +15,8 @@ export default async function PlanDetailPage({ params }: PageProps<"/dashboard/p
   const plan = await prisma.plan.findFirst({
     where: { slug, active: true },
     select: {
-      id: true, name: true, slug: true, description: true, price: true, maxGuests: true, maxPhotos: true, storageLimitMb: true, durationDays: true,
-      features: { where: { feature: { active: true } }, orderBy: { feature: { name: "asc" } }, select: { feature: { select: { id: true, name: true, description: true } } } },
+      id: true, code: true, name: true, slug: true, description: true, price: true, maxGuests: true, maxPhotos: true, storageLimitMb: true, durationDays: true,
+      features: { where: { feature: { active: true } }, orderBy: { feature: { name: "asc" } }, select: { feature: { select: { id: true, key: true, name: true } } } },
     },
   });
   if (!plan) notFound();

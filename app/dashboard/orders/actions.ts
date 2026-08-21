@@ -16,14 +16,14 @@ function hasValidImageSignature(bytes: Uint8Array, type: string) {
 export async function uploadPaymentProof(orderId: string, _state: ProofState, formData: FormData): Promise<ProofState> {
   const user = await requireUser();
   const order = await prisma.order.findFirst({ where: { id: orderId, userId: user.id, status: { in: [ORDER_STATUSES.WAITING_PAYMENT, ORDER_STATUSES.WAITING_CONFIRMATION, ORDER_STATUSES.REJECTED] } }, select: { paymentProof: { select: { fileUrl: true } } } });
-  if (!order) return { error: "Order tidak dapat menerima bukti pembayaran.", success: false };
+  if (!order) return { error: "orders.errors.notUploadable", success: false };
   const file = formData.get("proof"); const noteValue = formData.get("note"); const note = typeof noteValue === "string" ? noteValue.trim().slice(0, 1000) : null;
-  if (!(file instanceof File) || !file.size || file.size > 10 * 1024 * 1024) return { error: "Pilih gambar bukti maksimal 10 MB.", success: false };
-  const ext = extensions[file.type as keyof typeof extensions]; if (!ext) return { error: "Gunakan JPEG, PNG, atau WebP.", success: false };
+  if (!(file instanceof File) || !file.size || file.size > 10 * 1024 * 1024) return { error: "orders.errors.fileSize", success: false };
+  const ext = extensions[file.type as keyof typeof extensions]; if (!ext) return { error: "orders.errors.fileType", success: false };
   const bytes = new Uint8Array(await file.arrayBuffer());
-  if (!hasValidImageSignature(bytes, file.type)) return { error: "Isi file tidak cocok dengan format gambar.", success: false };
+  if (!hasValidImageSignature(bytes, file.type)) return { error: "orders.errors.fileContent", success: false };
   const filename = `${randomUUID()}.${ext}`; const key = `orders/${orderId}/proof/${filename}`; const fileUrl = `/api/orders/${orderId}/proof/${filename}`;
-  try { await storage.save(key, bytes); } catch { return { error: "Bukti gagal disimpan.", success: false }; }
+  try { await storage.save(key, bytes); } catch { return { error: "orders.errors.storage", success: false }; }
   try {
     await prisma.$transaction(async (tx) => {
       const accepted = await tx.order.updateMany({
@@ -33,7 +33,7 @@ export async function uploadPaymentProof(orderId: string, _state: ProofState, fo
       if (accepted.count !== 1) throw new Error("Order status changed");
       await tx.paymentProof.upsert({ where: { orderId }, create: { orderId, fileUrl, note }, update: { fileUrl, note, uploadedAt: new Date() } });
     });
-  } catch { await storage.delete(key).catch(() => undefined); return { error: "Bukti gagal dicatat.", success: false }; }
+  } catch { await storage.delete(key).catch(() => undefined); return { error: "orders.errors.record", success: false }; }
   const oldKey = order.paymentProof?.fileUrl ? orderProofStorageKey(orderId, order.paymentProof.fileUrl) : null; if (oldKey) await storage.delete(oldKey).catch(() => undefined);
   revalidatePath(`/dashboard/orders/${orderId}`); revalidatePath("/dashboard/orders"); return { error: null, success: true };
 }

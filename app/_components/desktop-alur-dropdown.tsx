@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useI18n } from "./i18n-provider";
 
 const items = [
-  { label: "Buat ruang", description: "Mulai ruang acaramu dalam beberapa langkah.", target: "alur-buat-ruang", icon: "album" },
-  { label: "Bagikan QR", description: "Tamu scan lalu kirim momen dari browser.", target: "alur-bagikan-qr", icon: "qr" },
-  { label: "Kumpulkan cerita", description: "Semua foto masuk ke satu ruang bersama.", target: "alur-kumpulkan-momen", icon: "cerita" },
+  { key: "create", target: "alur-buat-ruang", icon: "album" },
+  { key: "share", target: "alur-bagikan-qr", icon: "qr" },
+  { key: "collect", target: "alur-kumpulkan-momen", icon: "cerita" },
 ] as const;
 
 function DropdownIcon({ name }: { name: (typeof items)[number]["icon"] }) {
@@ -80,7 +80,7 @@ export function DesktopAlurDropdown() {
           {items.map((item) => (
             <a key={item.target} href={`#${item.target}`} onClick={(event) => { event.preventDefault(); selectItem(item.target); }} className="flex gap-3 rounded-[13px] p-3 transition hover:bg-[#F5F0E7]/[.045]">
               <span className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg ${item.icon === "cerita" ? "bg-[#A98242]/10 text-[#A98242]" : "bg-[#D6B56F]/10 text-[#D6B56F]"}`}><DropdownIcon name={item.icon} /></span>
-              <span><span className="block text-[13px] font-semibold text-[#F5F0E7]">{item.label}</span><span className="mt-0.5 block text-[11px] leading-4 text-[#AEB8BE]">{item.description}</span></span>
+              <span><span className="block text-[13px] font-semibold text-[#F5F0E7]">{t(`howItWorks.steps.${item.key}.title`)}</span><span className="mt-0.5 block text-[11px] leading-4 text-[#AEB8BE]">{t(`howItWorks.steps.${item.key}.description`)}</span></span>
             </a>
           ))}
         </div>
