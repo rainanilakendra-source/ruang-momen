@@ -22,8 +22,36 @@ model User {
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
   sessions        Session[]
+  events          Event[]
 
   @@map("users")
+}
+
+enum EventType {
+  WEDDING
+  BIRTHDAY
+  GATHERING
+  GRADUATION
+  REUNION
+  CORPORATE
+  OTHER
+}
+
+model Event {
+  id        String    @id @default(cuid())
+  ownerId   String    @map("owner_id")
+  name      String
+  slug      String    @unique
+  type      EventType
+  eventDate DateTime  @map("event_date") @db.Date
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+  @@index([eventDate])
+  @@map("events")
 }
 
 model Session {

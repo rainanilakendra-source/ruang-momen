@@ -10,7 +10,7 @@ type NavItem = { label: string; icon: AppIconName; href?: string; match?: string
 
 const mainItems: NavItem[] = [
   { label: "Beranda", icon: "home", href: "/dashboard", match: "/dashboard" },
-  { label: "Ruang Saya", icon: "spaces" },
+  { label: "Ruang Saya", icon: "spaces", href: "/dashboard/ruang", match: "/dashboard/ruang" },
   { label: "Album", icon: "album" },
   { label: "Buat Ruang", icon: "add", href: "/dashboard/ruang/baru", match: "/dashboard/ruang/baru" },
   { label: "Paket & Tagihan", icon: "billing" },
@@ -58,7 +58,7 @@ export function DashboardNavigation() {
       <nav className="fixed right-0 bottom-0 left-0 z-50 px-3 pb-[calc(.75rem+env(safe-area-inset-bottom))] lg:hidden" aria-label="Navigasi dashboard mobile">
         <div className="mx-auto grid h-[68px] w-full max-w-[430px] grid-cols-5 items-center rounded-[24px] border border-[#F5F0E7]/10 bg-[rgba(10,29,48,.94)] px-1 shadow-[0_16px_42px_rgba(0,0,0,.36)] backdrop-blur-[18px]">
           <MobileItem label="Beranda" icon="home" href="/dashboard" active={pathname === "/dashboard"} />
-          <MobileItem label="Ruang" icon="spaces" />
+          <MobileItem label="Ruang" icon="spaces" href="/dashboard/ruang" active={pathname === "/dashboard/ruang"} />
           <MobileItem label="Buat" icon="add" href="/dashboard/ruang/baru" active={pathname === "/dashboard/ruang/baru"} central />
           <MobileItem label="Album" icon="album" />
           <MobileItem label="Akun" icon="account" />

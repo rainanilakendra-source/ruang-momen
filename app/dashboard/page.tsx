@@ -2,17 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AppIcon, type AppIconName } from "../_components/app-icons";
 import { DashboardHeader } from "../_components/dashboard-shell";
+import { requireUser } from "../lib/auth";
+import { prisma } from "../lib/prisma";
 
 export const metadata: Metadata = { title: "Dashboard — Ruang Momen" };
 
-const stats: { label: string; value: string; icon: AppIconName }[] = [
-  { label: "Ruang Aktif", value: "0", icon: "spaces" },
-  { label: "Total Momen", value: "0", icon: "album" },
-  { label: "Tamu Bergabung", value: "0", icon: "account" },
-  { label: "Penyimpanan", value: "0 MB", icon: "billing" },
-];
-
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const user = await requireUser();
+  const eventCount = await prisma.event.count({ where: { ownerId: user.id } });
+  const stats: { label: string; value: string; icon: AppIconName }[] = [
+    { label: "Ruang Aktif", value: String(eventCount), icon: "spaces" },
+    { label: "Total Momen", value: "0", icon: "album" },
+    { label: "Tamu Bergabung", value: "0", icon: "account" },
+    { label: "Penyimpanan", value: "0 MB", icon: "billing" },
+  ];
   return (
     <>
       <DashboardHeader title="Selamat datang" description="Kelola ruang dan semua momen acaramu dari sini." />
