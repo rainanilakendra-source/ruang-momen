@@ -13,18 +13,19 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(cuid())
+  id              String         @id @default(cuid())
   name            String
-  email           String    @unique
-  role            String    @default("USER")
-  passwordHash    String?   @map("password_hash")
-  imageUrl        String?   @map("image_url")
-  emailVerifiedAt DateTime? @map("email_verified_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  email           String         @unique
+  role            String         @default("USER")
+  passwordHash    String?        @map("password_hash")
+  imageUrl        String?        @map("image_url")
+  emailVerifiedAt DateTime?      @map("email_verified_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
   sessions        Session[]
   events          Event[]
   orders          Order[]
+  subscriptions   Subscription[]
 
   @@map("users")
 }
@@ -67,23 +68,24 @@ model Event {
 }
 
 model Plan {
-  id             String        @id @default(cuid())
-  code           String        @unique
+  id             String         @id @default(cuid())
+  code           String         @unique
   name           String
-  slug           String        @unique
+  slug           String         @unique
   description    String?
-  price          Int           @default(0)
-  maxGuests      Int           @default(0) @map("max_guests")
-  maxPhotos      Int           @default(0) @map("max_photos")
-  storageLimitMb Int           @default(0) @map("storage_limit_mb")
-  durationDays   Int           @default(0) @map("duration_days")
-  active         Boolean       @default(true) @map("is_active")
-  createdAt      DateTime      @default(now()) @map("created_at")
-  updatedAt      DateTime      @updatedAt @map("updated_at")
+  price          Int            @default(0)
+  maxGuests      Int            @default(0) @map("max_guests")
+  maxPhotos      Int            @default(0) @map("max_photos")
+  storageLimitMb Int            @default(0) @map("storage_limit_mb")
+  durationDays   Int            @default(0) @map("duration_days")
+  active         Boolean        @default(true) @map("is_active")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
   features       PlanFeature[]
   limit          PlanLimit?
   events         Event[]
   orders         Order[]
+  subscriptions  Subscription[]
 
   @@map("plans")
 }
@@ -191,6 +193,7 @@ model Order {
   plan            Plan          @relation(fields: [planId], references: [id], onDelete: Restrict)
   paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict)
   paymentProof    PaymentProof?
+  subscription    Subscription?
 
   @@index([userId])
   @@index([planId])
@@ -208,4 +211,23 @@ model PaymentProof {
   order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("payment_proofs")
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  planId    String   @map("plan_id")
+  orderId   String   @unique @map("order_id")
+  status    String   @default("ACTIVE")
+  startedAt DateTime @map("started_at")
+  expiredAt DateTime @map("expired_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  plan      Plan     @relation(fields: [planId], references: [id], onDelete: Restrict)
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([userId, status, expiredAt])
+  @@index([planId])
+  @@map("subscriptions")
 }
