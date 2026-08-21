@@ -7,6 +7,7 @@ import type { EventType } from "../../../generated/prisma/enums";
 import { requireUser } from "../../../lib/auth";
 import { EVENT_TYPES } from "../../../lib/event";
 import { prisma } from "../../../lib/prisma";
+import { DEFAULT_PLAN_CODE } from "../../../lib/plans";
 
 export type CreateEventState = {
   error: string | null;
@@ -56,6 +57,12 @@ export async function createEvent(
   if (!EVENT_TYPES.includes(typeValue as EventType)) return { error: "Pilih jenis acara yang valid." };
   if (!eventDate) return { error: "Masukkan tanggal acara yang valid." };
 
+  const defaultPlan = await prisma.plan.findUnique({
+    where: { code: DEFAULT_PLAN_CODE, isActive: true },
+    select: { id: true },
+  });
+  if (!defaultPlan) return { error: "Plan dasar belum tersedia. Silakan coba lagi." };
+
   let eventId: string | null = null;
 
   for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -63,6 +70,7 @@ export async function createEvent(
       const event = await prisma.event.create({
         data: {
           ownerId: user.id,
+          planId: defaultPlan.id,
           name,
           type: typeValue as EventType,
           eventDate,
