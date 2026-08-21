@@ -34,8 +34,11 @@ function SidebarItem({ item, pathname }: { item: NavItem; pathname: string }) {
   return item.href ? <Link href={item.href} className={className} aria-current={active ? "page" : undefined}>{content}</Link> : <button type="button" className={`${className} w-full cursor-not-allowed opacity-65`} disabled>{content}</button>;
 }
 
-export function DashboardNavigation() {
+export function DashboardNavigation({ showSuperAdmin = false }: { showSuperAdmin?: boolean }) {
   const pathname = usePathname();
+  const visibleMainItems = showSuperAdmin
+    ? [...mainItems, { label: "Super Admin", icon: "lock" as const, href: "/superadmin", match: "/superadmin" }]
+    : mainItems;
 
   return (
     <>
@@ -44,7 +47,7 @@ export function DashboardNavigation() {
           <Image src="/brand/ruang-momen-logo.png" alt="Ruang Momen" width={1973} height={644} className="h-12 w-auto object-contain" priority />
         </Link>
         <nav className="flex flex-1 flex-col" aria-label="Navigasi dashboard desktop">
-          <div className="space-y-1.5">{mainItems.map((item) => <SidebarItem key={item.label} item={item} pathname={pathname} />)}</div>
+          <div className="space-y-1.5">{visibleMainItems.map((item) => <SidebarItem key={item.label} item={item} pathname={pathname} />)}</div>
           <div className="mt-auto space-y-1.5 border-t border-[#F5F0E7]/[.08] pt-4">
             {bottomItems.map((item) => <SidebarItem key={item.label} item={item} pathname={pathname} />)}
             <form action={logoutUser}>
@@ -62,7 +65,7 @@ export function DashboardNavigation() {
           <MobileItem label="Ruang" icon="spaces" href="/dashboard/ruang" active={pathname === "/dashboard/ruang"} />
           <MobileItem label="Buat" icon="add" href="/dashboard/ruang/baru" active={pathname === "/dashboard/ruang/baru"} central />
           <MobileItem label="Album" icon="album" href="/dashboard/album" active={pathname.startsWith("/dashboard/album") || pathname.endsWith("/album")} />
-          <MobileItem label="Akun" icon="account" />
+          {showSuperAdmin ? <MobileItem label="Admin" icon="lock" href="/superadmin" active={pathname.startsWith("/superadmin")} /> : <MobileItem label="Akun" icon="account" />}
         </div>
       </nav>
     </>

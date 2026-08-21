@@ -58,7 +58,7 @@ export async function createEvent(
   if (!eventDate) return { error: "Masukkan tanggal acara yang valid." };
 
   const defaultPlan = await prisma.plan.findUnique({
-    where: { code: DEFAULT_PLAN_CODE, isActive: true },
+    where: { code: DEFAULT_PLAN_CODE, active: true },
     select: { id: true },
   });
   if (!defaultPlan) return { error: "Plan dasar belum tersedia. Silakan coba lagi." };

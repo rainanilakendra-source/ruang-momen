@@ -1,11 +1,14 @@
 import type { ReactNode } from "react";
 import { getCurrentUser } from "../lib/auth";
+import { hasRole, ROLES } from "../lib/roles";
 import { DashboardNavigation } from "./dashboard-navigation";
 
-export function DashboardShell({ children }: { children: ReactNode }) {
+export async function DashboardShell({ children }: { children: ReactNode }) {
+  const user = await getCurrentUser();
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#071727] pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-[#F5F0E7] lg:pb-0 lg:pl-[248px] xl:pl-[264px]">
-      <DashboardNavigation />
+      <DashboardNavigation showSuperAdmin={Boolean(user && hasRole(user, ROLES.SUPER_ADMIN))} />
       <div className="mx-auto min-h-screen w-full max-w-[1440px] px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-9 xl:px-12">{children}</div>
     </main>
   );

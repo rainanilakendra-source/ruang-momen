@@ -5,11 +5,13 @@ export const DEFAULT_PLAN_CODE = "BASIC" as const;
 
 export const PLAN_FEATURES = {
   GUEST_UPLOAD: "guest_upload",
-  GUEST_GALLERY: "guest_gallery",
-  GUEST_DOWNLOAD: "guest_download",
+  CAMERA_MODE: "camera_mode",
+  GALLERY: "gallery",
+  DOWNLOAD_ORIGINAL: "download_original",
   QR_SOURCE: "qr_source",
   REACTION: "reaction",
-  CUSTOM_THEME: "custom_theme",
+  WATERMARK: "watermark",
+  CUSTOM_BRANDING: "custom_branding",
   REMOVE_BRANDING: "remove_branding",
   ZIP_EXPORT: "zip_export",
   ANALYTICS: "analytics",
@@ -26,8 +28,8 @@ export const EVENT_PLAN_SELECT = {
       id: true,
       code: true,
       name: true,
-      isActive: true,
-      features: { select: { key: true, enabled: true } },
+      active: true,
+      features: { select: { feature: { select: { key: true, active: true } } } },
       limit: { select: { maxPhotos: true, maxStorageBytes: true, maxActiveDays: true } },
     },
   },
@@ -40,8 +42,11 @@ export function getEventPlan(eventId: string): Promise<EventWithPlan | null> {
   return prisma.event.findUnique({ where: { id: eventId }, select: EVENT_PLAN_SELECT });
 }
 
-export function hasFeature(event: EventWithPlan, featureKey: PlanFeatureKey): boolean {
-  return event.plan.isActive && event.plan.features.some(({ key, enabled }) => key === featureKey && enabled);
+type PlanWithFeatures = EventWithPlan["plan"];
+
+export function hasFeature(subject: EventWithPlan | PlanWithFeatures, featureKey: string): boolean {
+  const plan = "plan" in subject ? subject.plan : subject;
+  return plan.active && plan.features.some(({ feature }) => feature.key === featureKey && feature.active);
 }
 
 export function getPlanLimit<K extends PlanLimitKey>(event: EventWithPlan, limitKey: K): NonNullable<EventWithPlan["plan"]["limit"]>[K] | null {
@@ -59,7 +64,7 @@ export function checkStorageLimit(event: EventWithPlan, currentStorageBytes: big
 }
 
 export function canUploadPhoto(event: EventWithPlan, usage: UploadUsage): boolean {
-  return event.plan.isActive
+  return event.plan.active
     && hasFeature(event, PLAN_FEATURES.GUEST_UPLOAD)
     && checkPhotoLimit(event, usage.photoCount)
     && checkStorageLimit(event, usage.storageBytes, usage.incomingBytes);
