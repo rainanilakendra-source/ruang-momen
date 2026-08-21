@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useRef } from "react";
 import { registerUser, type RegisterState } from "../daftar/actions";
+import { loginUser, type LoginState } from "../masuk/actions";
 import { AppIcon, type AppIconName } from "./app-icons";
 
 type AuthMode = "masuk" | "daftar";
@@ -22,6 +23,7 @@ function Field({ label, name, type = "text", autoComplete, icon, placeholder, mi
 }
 
 const initialRegisterState: RegisterState = { error: null };
+const initialLoginState: LoginState = { error: null };
 
 export function AuthForm({ mode }: { mode: AuthMode }) {
   const isLogin = mode === "masuk";
@@ -29,17 +31,23 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     registerUser,
     initialRegisterState,
   );
+  const [loginState, loginAction, isLoginPending] = useActionState(
+    loginUser,
+    initialLoginState,
+  );
+  const authState = isLogin ? loginState : registerState;
+  const pending = isLogin ? isLoginPending : isPending;
   const errorRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
-    if (registerState.error) {
+    if (authState.error) {
       errorRef.current?.focus({ preventScroll: true });
       errorRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
-  }, [registerState]);
+  }, [authState]);
 
   return (
-    <form className="mt-8 space-y-5" action={isLogin ? undefined : registerAction} onSubmit={isLogin ? (event) => event.preventDefault() : undefined} noValidate={!isLogin}>
+    <form className="mt-8 space-y-5" action={isLogin ? loginAction : registerAction} noValidate>
       {!isLogin && <Field label="Nama" name="name" autoComplete="name" icon="user" placeholder="Nama lengkap" minLength={2} maxLength={80} />}
       <Field label="Email" name="email" type="email" autoComplete="email" icon="mail" placeholder="nama@email.com" maxLength={254} />
       <div>
@@ -48,14 +56,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       </div>
       {!isLogin && <Field label="Konfirmasi kata sandi" name="passwordConfirmation" type="password" autoComplete="new-password" icon="lock" placeholder="Ulangi kata sandi" minLength={10} maxLength={128} />}
 
-      {!isLogin && registerState.error && (
+      {authState.error && (
         <p ref={errorRef} role="alert" aria-live="assertive" tabIndex={-1} className="rounded-xl border border-red-300/20 bg-red-400/10 px-4 py-3 text-sm text-red-100 outline-none">
-          {registerState.error}
+          {authState.error}
         </p>
       )}
 
-      <button type="submit" disabled={!isLogin && isPending} className="flex min-h-12 w-full items-center justify-center rounded-xl bg-[#F5F0E7] px-5 text-sm font-bold text-[#071727] shadow-[0_10px_24px_rgba(0,0,0,.18)] transition hover:-translate-y-0.5 hover:bg-[#D6B56F] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D6B56F] disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0">
-        {isLogin ? "Masuk ke Ruang" : isPending ? "Membuat akun..." : "Buat Akun"}
+      <button type="submit" disabled={pending} className="flex min-h-12 w-full items-center justify-center rounded-xl bg-[#F5F0E7] px-5 text-sm font-bold text-[#071727] shadow-[0_10px_24px_rgba(0,0,0,.18)] transition hover:-translate-y-0.5 hover:bg-[#D6B56F] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D6B56F] disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0">
+        {isLogin ? pending ? "Memasuki ruang..." : "Masuk ke Ruang" : pending ? "Membuat akun..." : "Buat Akun"}
       </button>
 
       <div className="flex items-center gap-3 text-[11px] uppercase tracking-[.16em] text-[#AEB8BE]/65"><span className="h-px flex-1 bg-[#F5F0E7]/10" />atau<span className="h-px flex-1 bg-[#F5F0E7]/10" /></div>

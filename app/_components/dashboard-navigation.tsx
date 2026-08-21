@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logoutUser } from "../dashboard/actions";
 import { AppIcon, type AppIconName } from "./app-icons";
 
 type NavItem = { label: string; icon: AppIconName; href?: string; match?: string };
@@ -18,7 +19,6 @@ const mainItems: NavItem[] = [
 
 const bottomItems: NavItem[] = [
   { label: "Bantuan", icon: "help" },
-  { label: "Keluar", icon: "logout" },
 ];
 
 function isActive(pathname: string, item: NavItem) {
@@ -44,7 +44,14 @@ export function DashboardNavigation() {
         </Link>
         <nav className="flex flex-1 flex-col" aria-label="Navigasi dashboard desktop">
           <div className="space-y-1.5">{mainItems.map((item) => <SidebarItem key={item.label} item={item} pathname={pathname} />)}</div>
-          <div className="mt-auto space-y-1.5 border-t border-[#F5F0E7]/[.08] pt-4">{bottomItems.map((item) => <SidebarItem key={item.label} item={item} pathname={pathname} />)}</div>
+          <div className="mt-auto space-y-1.5 border-t border-[#F5F0E7]/[.08] pt-4">
+            {bottomItems.map((item) => <SidebarItem key={item.label} item={item} pathname={pathname} />)}
+            <form action={logoutUser}>
+              <button type="submit" className="flex min-h-11 w-full items-center gap-3 rounded-xl border border-transparent px-3.5 text-sm font-semibold text-[#AEB8BE] transition hover:bg-[#F5F0E7]/[.045] hover:text-[#F5F0E7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D6B56F]">
+                <AppIcon name="logout" className="h-5 w-5 shrink-0" /><span>Keluar</span>
+              </button>
+            </form>
+          </div>
         </nav>
       </aside>
 

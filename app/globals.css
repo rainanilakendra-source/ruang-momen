@@ -112,6 +112,13 @@ details[open] > .desktop-nav-link svg {
   text-shadow: 0 2px 12px rgba(214, 181, 111, 0.16);
 }
 
+.alur-target-highlight {
+  border-color: rgba(214, 181, 111, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(245, 240, 231, 0.04),
+    0 18px 44px rgba(214, 181, 111, 0.12);
+}
+
 @media (min-width: 64rem) {
   .desktop-site-header .brand-logo-image {
     filter:
