@@ -24,6 +24,7 @@ model User {
   updatedAt       DateTime  @updatedAt @map("updated_at")
   sessions        Session[]
   events          Event[]
+  orders          Order[]
 
   @@map("users")
 }
@@ -82,6 +83,7 @@ model Plan {
   features       PlanFeature[]
   limit          PlanLimit?
   events         Event[]
+  orders         Order[]
 
   @@map("plans")
 }
@@ -169,7 +171,41 @@ model PaymentMethod {
   active        Boolean  @default(true)
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
+  orders        Order[]
 
   @@index([active])
   @@map("payment_methods")
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique @map("order_number")
+  userId          String        @map("user_id")
+  planId          String        @map("plan_id")
+  amount          Int
+  status          String        @default("PENDING")
+  paymentMethodId String        @map("payment_method_id")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  user            User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  plan            Plan          @relation(fields: [planId], references: [id], onDelete: Restrict)
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict)
+  paymentProof    PaymentProof?
+
+  @@index([userId])
+  @@index([planId])
+  @@index([paymentMethodId])
+  @@index([status])
+  @@map("orders")
+}
+
+model PaymentProof {
+  id         String   @id @default(cuid())
+  orderId    String   @unique @map("order_id")
+  fileUrl    String   @map("file_url")
+  note       String?
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payment_proofs")
 }

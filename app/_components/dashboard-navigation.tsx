@@ -13,7 +13,7 @@ const mainItems: NavItem[] = [
   { label: "Ruang Saya", icon: "spaces", href: "/dashboard/ruang", match: "/dashboard/ruang" },
   { label: "Album", icon: "album", href: "/dashboard/album", match: "/dashboard/album" },
   { label: "Buat Ruang", icon: "add", href: "/dashboard/ruang/baru", match: "/dashboard/ruang/baru" },
-  { label: "Paket & Tagihan", icon: "billing" },
+  { label: "My Orders", icon: "billing", href: "/dashboard/orders", match: "/dashboard/orders" },
   { label: "Akun", icon: "account" },
 ];
 
@@ -23,6 +23,9 @@ const bottomItems: NavItem[] = [
 
 function isActive(pathname: string, item: NavItem) {
   if (item.label === "Album") return pathname === "/dashboard/album" || pathname.endsWith("/album");
+  if (item.label === "My Orders") return pathname.startsWith("/dashboard/orders");
+  if (item.label === "Admin Orders") return pathname.startsWith("/admin/orders");
+  if (item.label === "Super Admin") return pathname.startsWith("/superadmin");
   return Boolean(item.match && pathname === item.match);
 }
 
@@ -34,11 +37,13 @@ function SidebarItem({ item, pathname }: { item: NavItem; pathname: string }) {
   return item.href ? <Link href={item.href} className={className} aria-current={active ? "page" : undefined}>{content}</Link> : <button type="button" className={`${className} w-full cursor-not-allowed opacity-65`} disabled>{content}</button>;
 }
 
-export function DashboardNavigation({ showSuperAdmin = false }: { showSuperAdmin?: boolean }) {
+export function DashboardNavigation({ showAdminOrders = false, showSuperAdmin = false }: { showAdminOrders?: boolean; showSuperAdmin?: boolean }) {
   const pathname = usePathname();
-  const visibleMainItems = showSuperAdmin
-    ? [...mainItems, { label: "Super Admin", icon: "lock" as const, href: "/superadmin", match: "/superadmin" }]
-    : mainItems;
+  const visibleMainItems: NavItem[] = [
+    ...mainItems,
+    ...(showAdminOrders ? [{ label: "Admin Orders", icon: "lock" as const, href: "/admin/orders", match: "/admin/orders" }] : []),
+    ...(showSuperAdmin ? [{ label: "Super Admin", icon: "lock" as const, href: "/superadmin", match: "/superadmin" }] : []),
+  ];
 
   return (
     <>
@@ -65,7 +70,7 @@ export function DashboardNavigation({ showSuperAdmin = false }: { showSuperAdmin
           <MobileItem label="Ruang" icon="spaces" href="/dashboard/ruang" active={pathname === "/dashboard/ruang"} />
           <MobileItem label="Buat" icon="add" href="/dashboard/ruang/baru" active={pathname === "/dashboard/ruang/baru"} central />
           <MobileItem label="Album" icon="album" href="/dashboard/album" active={pathname.startsWith("/dashboard/album") || pathname.endsWith("/album")} />
-          {showSuperAdmin ? <MobileItem label="Admin" icon="lock" href="/superadmin" active={pathname.startsWith("/superadmin")} /> : <MobileItem label="Akun" icon="account" />}
+          {showSuperAdmin ? <MobileItem label="Admin" icon="lock" href="/superadmin" active={pathname.startsWith("/superadmin")} /> : showAdminOrders ? <MobileItem label="Admin" icon="lock" href="/admin/orders" active={pathname.startsWith("/admin/orders")} /> : <MobileItem label="Orders" icon="billing" href="/dashboard/orders" active={pathname.startsWith("/dashboard/orders")} />}
         </div>
       </nav>
     </>
