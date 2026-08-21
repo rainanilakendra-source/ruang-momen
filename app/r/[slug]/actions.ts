@@ -6,6 +6,7 @@ import { prisma } from "../../lib/prisma";
 import { storage } from "../../lib/storage";
 import { MAX_UPLOAD_BYTES } from "../../lib/upload";
 import { normalizePhotoSource } from "../../lib/photo-source";
+import { validateGuestName } from "../../lib/guest-name";
 
 const MIME_EXTENSIONS = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as const;
 
@@ -36,6 +37,9 @@ export async function uploadGuestPhoto(slug: string, source: string | null, _pre
   const event = await prisma.event.findUnique({ where: { slug }, select: { id: true } });
   if (!event) return { status: "error", message: "Ruang acara tidak ditemukan." };
 
+  const guestName = validateGuestName(formData.get("guestName"));
+  if (!guestName.ok) return { status: "error", message: guestName.message };
+
   const photo = selectedPhoto(formData);
   if (!photo) return { status: "error", message: "Pilih satu foto untuk dikirim." };
   if (photo.size > MAX_UPLOAD_BYTES) return { status: "error", message: "Ukuran foto maksimal 25 MB." };
@@ -59,7 +63,7 @@ export async function uploadGuestPhoto(slug: string, source: string | null, _pre
   }
 
   try {
-    await prisma.photo.create({ data: { eventId: event.id, storageKey, originalName: safeOriginalName(photo.name), mimeType, sizeBytes: photo.size, source: normalizePhotoSource(source) } });
+    await prisma.photo.create({ data: { eventId: event.id, storageKey, originalName: safeOriginalName(photo.name), mimeType, sizeBytes: photo.size, source: normalizePhotoSource(source), guestName: guestName.value } });
   } catch {
     await storage.delete(storageKey).catch(() => undefined);
     return { status: "error", message: "Foto belum berhasil dicatat. Silakan coba lagi." };

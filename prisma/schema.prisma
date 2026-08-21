@@ -63,6 +63,7 @@ model Photo {
   mimeType     String   @map("mime_type")
   sizeBytes    Int      @map("size_bytes")
   source       String?  @map("source")
+  guestName    String?  @map("guest_name")
   createdAt    DateTime @default(now()) @map("created_at")
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)

@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { uploadGuestPhoto, type UploadPhotoState } from "./actions";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_MB, PHOTO_ACCEPT } from "../../lib/upload";
 import type { QrMode } from "../../lib/qr";
+import { MAX_GUEST_NAME_LENGTH } from "../../lib/guest-name";
 
 const initialUploadPhotoState: UploadPhotoState = { status: "idle", message: null };
 type UploadMethod = "camera" | "gallery";
@@ -14,6 +15,7 @@ export function GuestPhotoUploader({ slug, mode, source }: { slug: string; mode:
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const submittingRef = useRef(false);
   const [clientError, setClientError] = useState<string | null>(null);
+  const [guestName, setGuestName] = useState("");
   const [activeMethod, setActiveMethod] = useState<UploadMethod | null>(null);
   const [state, action, pending] = useActionState(uploadGuestPhoto.bind(null, slug, source), initialUploadPhotoState);
 
@@ -85,6 +87,11 @@ export function GuestPhotoUploader({ slug, mode, source }: { slug: string; mode:
 
   return (
     <form ref={formRef} action={action} className="mt-8" onSubmit={() => { submittingRef.current = true; }}>
+      <div className="mx-auto mb-5 max-w-sm text-left">
+        <label htmlFor="guest-name" className="text-xs font-bold uppercase tracking-[.14em] text-[#F1DDA7]">Namamu</label>
+        <input id="guest-name" name="guestName" type="text" value={guestName} maxLength={MAX_GUEST_NAME_LENGTH} disabled={pending} onChange={(event) => setGuestName(event.target.value)} placeholder="Nama atau panggilan" className="mt-2 min-h-12 w-full rounded-xl border border-[#F5F0E7]/12 bg-[#071727]/55 px-4 text-sm text-[#F5F0E7] placeholder:text-[#AEB8BE]/60 focus:border-[#D6B56F]/40 focus:outline-none disabled:opacity-60" />
+        <p className="mt-2 text-xs leading-5 text-[#AEB8BE]">Opsional — supaya pemilik ruang tahu momen ini darimu.</p>
+      </div>
       {cameraSuccess ? (
         <div role="status" aria-live="polite">
           <p className="font-serif text-2xl italic text-[#F1DDA7] sm:text-3xl">Momenmu sudah masuk ✨</p>
@@ -110,7 +117,7 @@ export function GuestPhotoUploader({ slug, mode, source }: { slug: string; mode:
 
       <div aria-live="polite" aria-atomic="true">
         {pending && <p className="mt-4 text-sm font-semibold text-[#F1DDA7]">Mengirim momen...</p>}
-        {serverError && <p role="alert" className="mt-4 text-sm font-semibold text-red-300">{activeMethod === "camera" ? "Foto gagal dikirim. Silakan coba lagi." : serverError}</p>}
+        {serverError && <p role="alert" className="mt-4 text-sm font-semibold text-red-300">{activeMethod === "camera" && serverError !== "Nama maksimal 40 karakter." ? "Foto gagal dikirim. Silakan coba lagi." : serverError}</p>}
         {clientError && <p role="alert" className="mt-4 text-sm font-semibold text-red-300">{clientError}</p>}
       </div>
 
@@ -122,6 +129,7 @@ export function GuestPhotoUploader({ slug, mode, source }: { slug: string; mode:
       )}
 
       {!cameraSuccess && !gallerySuccess && <p className="mt-4 text-xs text-[#AEB8BE]">JPEG, PNG, atau WebP · Maksimal {MAX_UPLOAD_MB} MB</p>}
+      <p className="mt-3 text-xs leading-5 text-[#AEB8BE]">Dengan mengirim foto, kamu membagikan foto dan nama yang kamu isi kepada pemilik ruang acara ini.</p>
     </form>
   );
 }

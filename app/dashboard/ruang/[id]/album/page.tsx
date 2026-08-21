@@ -15,12 +15,12 @@ export default async function RoomAlbumPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const event = await prisma.event.findFirst({
     where: { id, ownerId: user.id },
-    select: { name: true, photos: { orderBy: { createdAt: "desc" }, select: { id: true, originalName: true, sizeBytes: true, source: true, createdAt: true } } },
+    select: { name: true, photos: { orderBy: { createdAt: "desc" }, select: { id: true, originalName: true, sizeBytes: true, source: true, guestName: true, createdAt: true } } },
   });
   if (!event) notFound();
 
   const totalBytes = event.photos.reduce((total, photo) => total + photo.sizeBytes, 0);
-  const photos = event.photos.map((photo) => ({ id: photo.id, originalName: photo.originalName, sizeLabel: formatBytes(photo.sizeBytes), sourceLabel: photo.source ? formatPhotoSource(photo.source) : null, uploadedAt: new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(photo.createdAt) }));
+  const photos = event.photos.map((photo) => ({ id: photo.id, originalName: photo.originalName, sizeLabel: formatBytes(photo.sizeBytes), guestName: photo.guestName, sourceLabel: photo.source ? formatPhotoSource(photo.source) : null, uploadedAt: new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(photo.createdAt) }));
 
   return <>
     <DashboardHeader title={event.name} description="Semua momen yang terkumpul dari tamumu ada di sini." />
