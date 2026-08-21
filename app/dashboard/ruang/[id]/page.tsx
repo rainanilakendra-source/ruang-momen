@@ -9,7 +9,7 @@ import { requireUser } from "../../../lib/auth";
 import { EVENT_TYPE_LABELS, formatEventDate } from "../../../lib/event";
 import { prisma } from "../../../lib/prisma";
 import { formatBytes } from "../../../lib/format";
-import { buildGuestUrl, generateQrDataUrl, QR_MODE_DETAILS, QR_MODES, type QrMode } from "../../../lib/qr";
+import { buildGuestUrl, generateQrDataUrl, getAppBaseUrl, QR_MODE_DETAILS, QR_MODES, type QrMode } from "../../../lib/qr";
 
 export const metadata: Metadata = { title: "Detail Ruang — Ruang Momen" };
 
@@ -23,9 +23,10 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ id:
 
   if (!event) notFound();
 
+  const baseUrl = getAppBaseUrl();
   const [qrVariants, photoStats] = await Promise.all([
     Promise.all(QR_MODES.map(async (mode) => {
-      const guestUrl = buildGuestUrl(event.slug, mode);
+      const guestUrl = buildGuestUrl({ baseUrl, slug: event.slug, mode });
       return [mode, { guestUrl, qrDataUrl: await generateQrDataUrl(guestUrl), printHref: `/dashboard/ruang/${id}/qr${mode === "general" ? "" : `?mode=${mode}`}`, downloadName: `ruang-momen-${event.slug}-${QR_MODE_DETAILS[mode].filename}.png` }] as const;
     })).then((entries) => Object.fromEntries(entries) as Record<QrMode, { guestUrl: string; qrDataUrl: string; printHref: string; downloadName: string }>),
     prisma.photo.aggregate({ where: { eventId: id }, _count: { _all: true }, _sum: { sizeBytes: true } }),
@@ -45,7 +46,7 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ id:
           <p className="text-xs font-bold uppercase tracking-[.18em] text-[#D6B56F]">Bagikan Ruang</p>
           <h2 className="mt-3 text-xl font-bold">Bagikan Ruang</h2>
           <p className="mt-3 text-sm leading-6 text-[#AEB8BE]">Bagikan satu QR agar setiap tamu bisa masuk ke ruang ini dari browser mereka.</p>
-          <ShareRoomActions eventName={event.name} variants={qrVariants} />
+          <ShareRoomActions eventName={event.name} eventId={id} eventSlug={event.slug} baseUrl={baseUrl} variants={qrVariants} />
           <p className="mt-4 text-center text-xs font-semibold text-[#D6B56F]">Tanpa install aplikasi.</p>
         </aside>
       </section>

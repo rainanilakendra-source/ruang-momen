@@ -8,14 +8,14 @@ import type { QrMode } from "../../lib/qr";
 const initialUploadPhotoState: UploadPhotoState = { status: "idle", message: null };
 type UploadMethod = "camera" | "gallery";
 
-export function GuestPhotoUploader({ slug, mode }: { slug: string; mode: QrMode }) {
+export function GuestPhotoUploader({ slug, mode, source }: { slug: string; mode: QrMode; source: string | null }) {
   const formRef = useRef<HTMLFormElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const submittingRef = useRef(false);
   const [clientError, setClientError] = useState<string | null>(null);
   const [activeMethod, setActiveMethod] = useState<UploadMethod | null>(null);
-  const [state, action, pending] = useActionState(uploadGuestPhoto.bind(null, slug), initialUploadPhotoState);
+  const [state, action, pending] = useActionState(uploadGuestPhoto.bind(null, slug, source), initialUploadPhotoState);
 
   useEffect(() => {
     if (!pending) submittingRef.current = false;

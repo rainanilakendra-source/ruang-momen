@@ -5,6 +5,7 @@ import path from "node:path";
 import { prisma } from "../../lib/prisma";
 import { storage } from "../../lib/storage";
 import { MAX_UPLOAD_BYTES } from "../../lib/upload";
+import { normalizePhotoSource } from "../../lib/photo-source";
 
 const MIME_EXTENSIONS = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as const;
 
@@ -31,7 +32,7 @@ function safeOriginalName(name: string): string {
   return (baseName || "momen").slice(0, 255);
 }
 
-export async function uploadGuestPhoto(slug: string, _previousState: UploadPhotoState, formData: FormData): Promise<UploadPhotoState> {
+export async function uploadGuestPhoto(slug: string, source: string | null, _previousState: UploadPhotoState, formData: FormData): Promise<UploadPhotoState> {
   const event = await prisma.event.findUnique({ where: { slug }, select: { id: true } });
   if (!event) return { status: "error", message: "Ruang acara tidak ditemukan." };
 
@@ -58,7 +59,7 @@ export async function uploadGuestPhoto(slug: string, _previousState: UploadPhoto
   }
 
   try {
-    await prisma.photo.create({ data: { eventId: event.id, storageKey, originalName: safeOriginalName(photo.name), mimeType, sizeBytes: photo.size } });
+    await prisma.photo.create({ data: { eventId: event.id, storageKey, originalName: safeOriginalName(photo.name), mimeType, sizeBytes: photo.size, source: normalizePhotoSource(source) } });
   } catch {
     await storage.delete(storageKey).catch(() => undefined);
     return { status: "error", message: "Foto belum berhasil dicatat. Silakan coba lagi." };

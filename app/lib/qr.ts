@@ -49,9 +49,11 @@ export function getAppBaseUrl(): string {
   return url.toString().replace(/\/+$/, "");
 }
 
-export function buildGuestUrl(slug: string, mode: QrMode = "general"): string {
-  const url = `${getAppBaseUrl()}/r/${encodeURIComponent(slug)}`;
-  return mode === "general" ? url : `${url}?mode=${mode}`;
+export function buildGuestUrl({ baseUrl, slug, mode = "general", source }: { baseUrl: string; slug: string; mode?: QrMode; source?: string | null }): string {
+  const url = new URL(`/r/${encodeURIComponent(slug)}`, `${baseUrl.replace(/\/+$/, "")}/`);
+  if (mode !== "general") url.searchParams.set("mode", mode);
+  if (source) url.searchParams.set("source", source);
+  return url.toString();
 }
 
 export async function generateQrDataUrl(url: string): Promise<string> {
