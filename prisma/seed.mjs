@@ -31,6 +31,14 @@ const managedPlans = [
 await client.connect();
 try {
   await client.query("BEGIN");
+  const paymentMethodCount = await client.query("SELECT COUNT(*)::int AS count FROM payment_methods");
+  if (paymentMethodCount.rows[0].count === 0) {
+    await client.query(
+      `INSERT INTO payment_methods (id, name, type, mode, active, updated_at) VALUES
+       ('payment_method_bank_transfer', 'Transfer Bank', 'BANK_TRANSFER', 'STATIC', true, CURRENT_TIMESTAMP),
+       ('payment_method_qris', 'QRIS', 'QRIS', 'STATIC', true, CURRENT_TIMESTAMP)`,
+    );
+  }
   for (const [key, name, description] of features) {
     await client.query(
       `INSERT INTO features (id, name, key, description, active, updated_at) VALUES ($1, $2, $3, $4, true, CURRENT_TIMESTAMP)

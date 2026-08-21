@@ -153,3 +153,23 @@ model Session {
   @@index([expiresAt])
   @@map("sessions")
 }
+
+model PaymentMethod {
+  id            String   @id @default(cuid())
+  name          String
+  type          String
+  mode          String
+  description   String?
+  bankName      String?  @map("bank_name")
+  accountName   String?  @map("account_name")
+  accountNumber String?  @map("account_number")
+  qrImageUrl    String?  @map("qr_image_url")
+  provider      String?
+  instructions  String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([active])
+  @@map("payment_methods")
+}

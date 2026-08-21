@@ -11,7 +11,7 @@ const items: { label: string; href: string; icon: AppIconName }[] = [
   { label: "Users", href: "/superadmin?view=users", icon: "account" },
   { label: "Plans", href: "/superadmin/plans", icon: "spaces" },
   { label: "Features", href: "/superadmin/features", icon: "lock" },
-  { label: "Payments", href: "/superadmin?view=payments", icon: "billing" },
+  { label: "Payments", href: "/superadmin/payments", icon: "billing" },
   { label: "Settings", href: "/superadmin?view=settings", icon: "calendar" },
   { label: "Logs", href: "/superadmin?view=logs", icon: "album" },
 ];
