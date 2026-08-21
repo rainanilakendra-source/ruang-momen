@@ -11,7 +11,7 @@ type NavItem = { label: string; icon: AppIconName; href?: string; match?: string
 const mainItems: NavItem[] = [
   { label: "Beranda", icon: "home", href: "/dashboard", match: "/dashboard" },
   { label: "Ruang Saya", icon: "spaces", href: "/dashboard/ruang", match: "/dashboard/ruang" },
-  { label: "Album", icon: "album" },
+  { label: "Album", icon: "album", href: "/dashboard/album", match: "/dashboard/album" },
   { label: "Buat Ruang", icon: "add", href: "/dashboard/ruang/baru", match: "/dashboard/ruang/baru" },
   { label: "Paket & Tagihan", icon: "billing" },
   { label: "Akun", icon: "account" },
@@ -22,6 +22,7 @@ const bottomItems: NavItem[] = [
 ];
 
 function isActive(pathname: string, item: NavItem) {
+  if (item.label === "Album") return pathname === "/dashboard/album" || pathname.endsWith("/album");
   return Boolean(item.match && pathname === item.match);
 }
 
@@ -60,7 +61,7 @@ export function DashboardNavigation() {
           <MobileItem label="Beranda" icon="home" href="/dashboard" active={pathname === "/dashboard"} />
           <MobileItem label="Ruang" icon="spaces" href="/dashboard/ruang" active={pathname === "/dashboard/ruang"} />
           <MobileItem label="Buat" icon="add" href="/dashboard/ruang/baru" active={pathname === "/dashboard/ruang/baru"} central />
-          <MobileItem label="Album" icon="album" />
+          <MobileItem label="Album" icon="album" href="/dashboard/album" active={pathname.startsWith("/dashboard/album") || pathname.endsWith("/album")} />
           <MobileItem label="Akun" icon="account" />
         </div>
       </nav>

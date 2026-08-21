@@ -22,12 +22,34 @@ export function ShareRoomActions({
   }, []);
 
   const copyLink = async () => {
+    let copied = false;
     try {
-      await navigator.clipboard.writeText(guestUrl);
-      setCopyFeedback("Tautan tersalin");
-    } catch {
-      setCopyFeedback("Tautan gagal disalin");
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(guestUrl);
+        copied = true;
+      }
+    } catch {}
+
+    if (!copied) {
+      const textarea = document.createElement("textarea");
+      textarea.value = guestUrl;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      textarea.setSelectionRange(0, textarea.value.length);
+      try {
+        copied = document.execCommand("copy");
+      } catch {
+        copied = false;
+      } finally {
+        textarea.remove();
+      }
     }
+
+    setCopyFeedback(copied ? "Tautan tersalin" : "Tidak dapat menyalin otomatis. Salin tautan secara manual.");
 
     if (feedbackTimer.current) clearTimeout(feedbackTimer.current);
     feedbackTimer.current = setTimeout(() => setCopyFeedback("Salin Tautan"), 1800);

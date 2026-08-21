@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppIcon } from "../../../_components/app-icons";
 import { DashboardHeader } from "../../../_components/dashboard-shell";
@@ -17,7 +18,7 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const event = await prisma.event.findFirst({
     where: { id, ownerId: user.id },
-    select: { name: true, slug: true, type: true, eventDate: true },
+    select: { name: true, slug: true, type: true, eventDate: true, photos: { orderBy: { createdAt: "desc" }, take: 6, select: { id: true } } },
   });
 
   if (!event) notFound();
@@ -47,6 +48,10 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ id:
           <ShareRoomActions guestUrl={guestUrl} qrDataUrl={qrDataUrl} eventSlug={event.slug} printHref={`/dashboard/ruang/${id}/qr`} />
           <p className="mt-4 text-center text-xs font-semibold text-[#D6B56F]">Tanpa install aplikasi.</p>
         </aside>
+      </section>
+      <section className="mt-6 rounded-[1.75rem] border border-[#F5F0E7]/[.08] bg-[#0A1D30] p-6 sm:p-8" aria-labelledby="recent-moments-title">
+        <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#D6B56F]">Album Ruang</p><h2 id="recent-moments-title" className="mt-2 text-xl font-bold">Momen Terbaru</h2></div><Link href={`/dashboard/ruang/${id}/album`} className="inline-flex min-h-11 items-center rounded-xl border border-[#D6B56F]/25 px-5 text-sm font-bold text-[#F1DDA7] transition hover:bg-[#D6B56F]/10">Lihat Semua Momen</Link></div>
+        {event.photos.length ? <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">{event.photos.map((photo) => <Link key={photo.id} href={`/dashboard/ruang/${id}/album`} className="relative aspect-square overflow-hidden rounded-xl border border-[#F5F0E7]/[.08] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D6B56F]"><Image src={`/api/media/${photo.id}`} alt={`Momen terbaru ${event.name}`} fill sizes="(min-width:1024px) 15vw, (min-width:640px) 30vw, 48vw" unoptimized className="object-cover transition hover:scale-[1.02]" /></Link>)}</div> : <p className="mt-5 rounded-xl border border-dashed border-[#F5F0E7]/10 px-5 py-8 text-center text-sm text-[#AEB8BE]">Belum ada momen yang terkumpul.</p>}
       </section>
     </>
   );
