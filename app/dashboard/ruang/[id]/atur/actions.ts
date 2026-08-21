@@ -91,6 +91,7 @@ export async function saveRoomSettings(eventId: string, _previousState: RoomSett
         eventDate,
         guestUploadEnabled: formData.get("guestUploadEnabled") === "on",
         guestGalleryEnabled: formData.get("guestGalleryEnabled") === "on",
+        guestDownloadEnabled: formData.get("guestDownloadEnabled") === "on",
         uploadStartsAt,
         uploadEndsAt,
         ...(newCoverKey ? { coverStorageKey: newCoverKey } : {}),

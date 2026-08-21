@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EVENT_TYPE_LABELS, formatEventDate } from "../../lib/event";
 import { prisma } from "../../lib/prisma";
@@ -17,7 +18,7 @@ export default async function GuestRoomPage({ params, searchParams }: { params: 
   const source = normalizePhotoSource(query.source);
   const event = await prisma.event.findUnique({
     where: { slug },
-    select: { name: true, slug: true, type: true, eventDate: true, coverStorageKey: true, guestUploadEnabled: true, uploadStartsAt: true, uploadEndsAt: true },
+    select: { name: true, slug: true, type: true, eventDate: true, coverStorageKey: true, guestUploadEnabled: true, guestGalleryEnabled: true, uploadStartsAt: true, uploadEndsAt: true },
   });
 
   if (!event) notFound();
@@ -35,6 +36,7 @@ export default async function GuestRoomPage({ params, searchParams }: { params: 
         {source && <p className="mx-auto mt-4 w-fit rounded-full border border-[#D6B56F]/20 bg-[#D6B56F]/[.08] px-3 py-1.5 text-xs font-semibold text-[#F1DDA7]">Sudut: {formatPhotoSource(source)}</p>}
         <div className="mx-auto mt-9 max-w-lg border-t border-[#F5F0E7]/[.08] pt-8"><h2 className="font-serif text-2xl italic text-[#F1DDA7] sm:text-3xl">{mode === "camera" ? "Jepret momennya dari sudutmu." : mode === "gallery" ? "Pilih momen dari galerimu." : "Setiap sudut punya cerita."}</h2><p className="mt-4 text-sm leading-7 text-[#AEB8BE] sm:text-base">{mode === "camera" ? "Foto akan langsung dikirim ke ruang setelah kamu memilih hasil jepretan." : mode === "gallery" ? "Pilih foto yang ingin kamu bagikan ke ruang ini." : "Bagikan momen yang kamu lihat dan bantu isi ruang ini bersama."}</p></div>
         {uploadStatus === "OPEN" ? <GuestPhotoUploader slug={event.slug} mode={mode} source={source} /> : <div className="mt-8 rounded-2xl border border-[#D6B56F]/15 bg-[#071727]/45 px-5 py-6"><h3 className="text-lg font-bold text-[#F1DDA7]">{uploadStatus === "DISABLED" ? "Pengiriman momen sedang ditutup." : EVENT_UPLOAD_STATUS_DETAILS[uploadStatus].message}</h3><p className="mt-2 text-sm leading-6 text-[#AEB8BE]">{uploadStatus === "DISABLED" ? "Kamu masih bisa membuka ruang ini, tetapi pemilik ruang sedang tidak menerima foto baru." : "Kamu masih bisa membuka ruang ini dan kembali lagi saat pengiriman momen tersedia."}</p></div>}
+        {event.guestGalleryEnabled && <Link href={`/r/${encodeURIComponent(event.slug)}/album`} className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-[#D6B56F]/30 px-5 text-sm font-bold text-[#F1DDA7] transition hover:bg-[#D6B56F]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D6B56F]">Lihat Momen Bersama</Link>}
         <p className="mt-5 text-xs font-semibold text-[#D6B56F]">Tanpa install aplikasi</p>
       </section>
     </main>

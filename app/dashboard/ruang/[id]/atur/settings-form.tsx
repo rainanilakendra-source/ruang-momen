@@ -17,6 +17,7 @@ type SettingsEvent = {
   hasCover: boolean;
   guestUploadEnabled: boolean;
   guestGalleryEnabled: boolean;
+  guestDownloadEnabled: boolean;
   uploadStartsAt: string | null;
   uploadEndsAt: string | null;
 };
@@ -92,6 +93,7 @@ export function RoomSettingsForm({ event }: { event: SettingsEvent }) {
         <div className="mt-5 space-y-4">
           <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-[#F5F0E7]/[.08] bg-[#071727]/45 p-4"><span><span className="block text-sm font-semibold text-[#F5F0E7]">Izinkan tamu mengirim momen</span><span className="mt-1 block text-xs leading-5 text-[#AEB8BE]">Jika dimatikan, tamu masih dapat membuka ruang tetapi tidak dapat mengirim foto.</span></span><input type="checkbox" name="guestUploadEnabled" defaultChecked={event.guestUploadEnabled} className="mt-1 h-5 w-5 shrink-0 accent-[#D6B56F]" /></label>
           <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-[#F5F0E7]/[.08] bg-[#071727]/45 p-4"><span><span className="block text-sm font-semibold text-[#F5F0E7]">Tamu boleh melihat album</span><span className="mt-1 block text-xs leading-5 text-[#AEB8BE]">Jika aktif, album tamu dapat ditampilkan saat fitur Galeri Tamu digunakan.</span></span><input type="checkbox" name="guestGalleryEnabled" defaultChecked={event.guestGalleryEnabled} className="mt-1 h-5 w-5 shrink-0 accent-[#D6B56F]" /></label>
+          <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-[#F5F0E7]/[.08] bg-[#071727]/45 p-4"><span><span className="block text-sm font-semibold text-[#F5F0E7]">Izinkan tamu mengunduh momen</span><span className="mt-1 block text-xs leading-5 text-[#AEB8BE]">Jika aktif, tamu dapat mengunduh foto dari album bersama.</span></span><input type="checkbox" name="guestDownloadEnabled" defaultChecked={event.guestDownloadEnabled} className="mt-1 h-5 w-5 shrink-0 accent-[#D6B56F]" /></label>
         </div>
       </section>
 

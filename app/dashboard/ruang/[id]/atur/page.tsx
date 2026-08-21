@@ -12,7 +12,7 @@ export default async function RoomSettingsPage({ params }: { params: Promise<{ i
   const { id } = await params;
   const event = await prisma.event.findFirst({
     where: { id, ownerId: user.id },
-    select: { id: true, slug: true, name: true, type: true, eventDate: true, coverStorageKey: true, guestUploadEnabled: true, guestGalleryEnabled: true, uploadStartsAt: true, uploadEndsAt: true },
+    select: { id: true, slug: true, name: true, type: true, eventDate: true, coverStorageKey: true, guestUploadEnabled: true, guestGalleryEnabled: true, guestDownloadEnabled: true, uploadStartsAt: true, uploadEndsAt: true },
   });
   if (!event) notFound();
 
