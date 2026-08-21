@@ -1,7 +1,8 @@
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import { prisma } from "./prisma";
+import { hasRole, rolesForProtectedPath, type Role } from "./roles";
 
 const SESSION_COOKIE_NAME = "ruang_momen_session";
 const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7;
@@ -43,7 +44,7 @@ export async function getCurrentUser() {
     select: {
       id: true,
       expiresAt: true,
-      user: { select: { id: true, name: true, email: true } },
+      user: { select: { id: true, name: true, email: true, role: true } },
     },
   });
 
@@ -67,6 +68,23 @@ export async function requireUser() {
   }
 
   return user;
+}
+
+export const requireAuth = requireUser;
+
+export async function requireRole(role: Role | readonly Role[]) {
+  const user = await requireAuth();
+
+  if (!hasRole(user, role)) {
+    forbidden();
+  }
+
+  return user;
+}
+
+export async function requireProtectedPath(pathname: string) {
+  const roles = rolesForProtectedPath(pathname);
+  return roles ? requireRole(roles) : requireAuth();
 }
 
 export async function deleteCurrentSession(): Promise<void> {

@@ -1,5 +1,6 @@
 import "dotenv/config";
 import pg from "pg";
+import { seedSuperAdmin } from "./seed-super-admin.mjs";
 
 const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
 const featureKeys = ["guest_upload", "guest_gallery", "guest_download", "qr_source", "reaction", "custom_theme", "remove_branding", "zip_export", "analytics", "advanced_qr"];
@@ -40,6 +41,7 @@ try {
       [`limit_${code.toLowerCase()}`, id, maxPhotos, maxStorageBytes.toString(), maxActiveDays],
     );
   }
+  await seedSuperAdmin(client);
   await client.query("COMMIT");
 } catch (error) {
   await client.query("ROLLBACK");

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Prisma } from "../generated/prisma/client";
 import { hashPassword } from "../lib/password";
 import { prisma } from "../lib/prisma";
+import { ROLES } from "../lib/roles";
 
 export type RegisterState = {
   error: string | null;
@@ -71,7 +72,7 @@ export async function registerUser(
     const passwordHash = await hashPassword(password);
 
     await prisma.user.create({
-      data: { name, email, passwordHash },
+      data: { name, email, passwordHash, role: ROLES.USER },
       select: { id: true },
     });
   } catch (error) {
