@@ -3,15 +3,16 @@
 import { useActionState, useRef, useState } from "react";
 import { uploadGuestPhoto, type UploadPhotoState } from "./actions";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_MB, PHOTO_ACCEPT } from "../../lib/upload";
+import type { QrMode } from "../../lib/qr";
 
 const initialUploadPhotoState: UploadPhotoState = { status: "idle", message: null };
 
-export function GuestPhotoUploader({ slug }: { slug: string }) {
+export function GuestPhotoUploader({ slug, mode }: { slug: string; mode: QrMode }) {
   const [resetKey, setResetKey] = useState(0);
-  return <Uploader key={resetKey} slug={slug} onReset={() => setResetKey((key) => key + 1)} />;
+  return <Uploader key={resetKey} slug={slug} mode={mode} onReset={() => setResetKey((key) => key + 1)} />;
 }
 
-function Uploader({ slug, onReset }: { slug: string; onReset: () => void }) {
+function Uploader({ slug, mode, onReset }: { slug: string; mode: QrMode; onReset: () => void }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [clientError, setClientError] = useState<string | null>(null);
   const [state, action, pending] = useActionState(uploadGuestPhoto.bind(null, slug), initialUploadPhotoState);
@@ -29,12 +30,15 @@ function Uploader({ slug, onReset }: { slug: string; onReset: () => void }) {
     formRef.current?.requestSubmit();
   };
   const controlClass = `inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl px-6 text-sm font-bold transition focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-[#D6B56F] ${pending ? "pointer-events-none opacity-60" : "hover:-translate-y-0.5"}`;
+  const primaryMethod = mode === "gallery" ? "gallery" : "camera";
+  const inputAccept = mode === "general" ? PHOTO_ACCEPT : "image/*";
+  const cameraControl = <label key="camera" className={`${controlClass} ${primaryMethod === "camera" ? "bg-[#F5F0E7] text-[#071727]" : "border border-[#D6B56F]/35 bg-[#D6B56F]/[.08] text-[#F1DDA7]"}`}><input type="file" name="cameraPhoto" accept={inputAccept} capture="environment" className="sr-only" onChange={submitSelection} />{pending && primaryMethod === "camera" ? "Mengirim momen..." : "Ambil Foto"}</label>;
+  const galleryControl = <label key="gallery" className={`${controlClass} ${primaryMethod === "gallery" ? "bg-[#F5F0E7] text-[#071727]" : "border border-[#D6B56F]/35 bg-[#D6B56F]/[.08] text-[#F1DDA7]"}`}><input type="file" name="galleryPhoto" accept={inputAccept} className="sr-only" onChange={submitSelection} />{pending && primaryMethod === "gallery" ? "Mengirim momen..." : "Pilih dari Galeri"}</label>;
   return (
     <form ref={formRef} action={action} className="mt-8">
       <fieldset disabled={pending} className="flex flex-wrap justify-center gap-3">
         <legend className="sr-only">Pilih sumber foto</legend>
-        <label className={`${controlClass} bg-[#F5F0E7] text-[#071727]`}><input type="file" name="cameraPhoto" accept={PHOTO_ACCEPT} capture="environment" className="sr-only" onChange={submitSelection} />{pending ? "Mengirim momen..." : "Ambil Foto"}</label>
-        <label className={`${controlClass} border border-[#D6B56F]/35 bg-[#D6B56F]/[.08] text-[#F1DDA7]`}><input type="file" name="galleryPhoto" accept={PHOTO_ACCEPT} className="sr-only" onChange={submitSelection} />{pending ? "Mohon tunggu..." : "Pilih dari Galeri"}</label>
+        {mode === "gallery" ? [galleryControl, cameraControl] : [cameraControl, galleryControl]}
       </fieldset>
       {state.status === "error" && <p role="alert" className="mt-4 text-sm font-semibold text-red-300">{state.message}</p>}
       {clientError && <p role="alert" className="mt-4 text-sm font-semibold text-red-300">{clientError}</p>}

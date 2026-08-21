@@ -1,5 +1,18 @@
 import QRCode from "qrcode";
 
+export const QR_MODES = ["general", "camera", "gallery"] as const;
+export type QrMode = (typeof QR_MODES)[number];
+
+export const QR_MODE_DETAILS: Record<QrMode, { label: string; filename: string; printLabel: string }> = {
+  general: { label: "Umum", filename: "umum", printLabel: "SCAN UNTUK MASUK KE RUANG" },
+  camera: { label: "Kamera Langsung", filename: "kamera", printLabel: "SCAN UNTUK JEPRET MOMEN" },
+  gallery: { label: "Galeri", filename: "galeri", printLabel: "SCAN UNTUK BAGIKAN DARI GALERI" },
+};
+
+export function parseQrMode(value: string | string[] | undefined): QrMode {
+  return value === "camera" || value === "gallery" ? value : "general";
+}
+
 const QR_OPTIONS = {
   errorCorrectionLevel: "Q" as const,
   margin: 4,
@@ -36,8 +49,9 @@ export function getAppBaseUrl(): string {
   return url.toString().replace(/\/+$/, "");
 }
 
-export function buildGuestUrl(slug: string): string {
-  return `${getAppBaseUrl()}/r/${encodeURIComponent(slug)}`;
+export function buildGuestUrl(slug: string, mode: QrMode = "general"): string {
+  const url = `${getAppBaseUrl()}/r/${encodeURIComponent(slug)}`;
+  return mode === "general" ? url : `${url}?mode=${mode}`;
 }
 
 export async function generateQrDataUrl(url: string): Promise<string> {
