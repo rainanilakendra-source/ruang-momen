@@ -34,8 +34,8 @@ export async function createFeature(_state: FeatureFormState, formData: FormData
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") return { error: "Key feature sudah digunakan." };
     return { error: "Feature gagal dibuat." };
   }
-  revalidatePath("/superadmin/features");
-  redirect("/superadmin/features");
+  revalidatePath("/incroet/features");
+  redirect("/incroet/features");
 }
 
 export async function updateFeature(featureId: string, _state: FeatureFormState, formData: FormData): Promise<FeatureFormState> {
@@ -49,9 +49,9 @@ export async function updateFeature(featureId: string, _state: FeatureFormState,
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") return { error: "Feature tidak ditemukan." };
     return { error: "Feature gagal diperbarui." };
   }
-  revalidatePath("/superadmin/features");
-  revalidatePath("/superadmin/plans");
-  redirect("/superadmin/features");
+  revalidatePath("/incroet/features");
+  revalidatePath("/incroet/plans");
+  redirect("/incroet/features");
 }
 
 export async function toggleFeatureStatus(featureId: string): Promise<void> {
@@ -59,6 +59,6 @@ export async function toggleFeatureStatus(featureId: string): Promise<void> {
   const feature = await prisma.feature.findUnique({ where: { id: featureId }, select: { active: true } });
   if (!feature) return;
   await prisma.feature.update({ where: { id: featureId }, data: { active: !feature.active }, select: { id: true } });
-  revalidatePath("/superadmin/features");
-  revalidatePath("/superadmin/plans");
+  revalidatePath("/incroet/features");
+  revalidatePath("/incroet/plans");
 }

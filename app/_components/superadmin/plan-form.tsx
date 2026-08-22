@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import type { PlanFormState } from "../../superadmin/plans/actions";
+import type { PlanFormState } from "../../incroet/plans/actions";
 
 type Values = { name: string; description: string | null; price: number; maxGuests: number; maxPhotos: number; storageLimitMb: number; durationDays: number };
 

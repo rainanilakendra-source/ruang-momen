@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useActionState } from "react";
-import type { PaymentFormState } from "../../superadmin/payments/actions";
+import type { PaymentFormState } from "../../incroet/payments/actions";
 
 type Values = { name: string; type: string; mode: string; description: string | null; bankName: string | null; accountName: string | null; accountNumber: string | null; qrImageUrl: string | null; instructions: string | null };
 const inputClass = "mt-2 min-h-12 w-full rounded-xl border border-[#F5F0E7]/10 bg-[#071727] px-4 text-sm outline-none focus:border-[#D6B56F]/50";

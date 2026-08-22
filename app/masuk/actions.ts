@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createSession } from "../lib/auth";
 import { verifyPassword } from "../lib/password";
 import { prisma } from "../lib/prisma";
+import { ROLES, type Role } from "../lib/roles";
 
 export type LoginState = {
   error: string | null;
@@ -11,7 +12,9 @@ export type LoginState = {
 
 const INVALID_CREDENTIALS = "Email atau kata sandi tidak sesuai.";
 
-export async function loginUser(
+async function loginForRole(
+  expectedRole: Role,
+  destination: string,
   _previousState: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
@@ -27,7 +30,7 @@ export async function loginUser(
   try {
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, passwordHash: true },
+      select: { id: true, passwordHash: true, role: true },
     });
 
     if (!user?.passwordHash) {
@@ -36,7 +39,7 @@ export async function loginUser(
 
     const passwordIsValid = await verifyPassword(password, user.passwordHash);
 
-    if (!passwordIsValid) {
+    if (!passwordIsValid || user.role !== expectedRole) {
       return { error: INVALID_CREDENTIALS };
     }
 
@@ -45,5 +48,26 @@ export async function loginUser(
     return { error: "Terjadi kesalahan. Silakan coba lagi." };
   }
 
-  redirect("/dashboard");
+  redirect(destination);
+}
+
+export async function loginUser(
+  previousState: LoginState,
+  formData: FormData,
+): Promise<LoginState> {
+  return loginForRole(ROLES.USER, "/dashboard", previousState, formData);
+}
+
+export async function loginAdmin(
+  previousState: LoginState,
+  formData: FormData,
+): Promise<LoginState> {
+  return loginForRole(ROLES.ADMIN, "/admin", previousState, formData);
+}
+
+export async function loginSuperAdmin(
+  previousState: LoginState,
+  formData: FormData,
+): Promise<LoginState> {
+  return loginForRole(ROLES.SUPER_ADMIN, "/incroet", previousState, formData);
 }

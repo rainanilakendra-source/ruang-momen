@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import type { FeatureFormState } from "../../superadmin/features/actions";
+import type { FeatureFormState } from "../../incroet/features/actions";
 
 type Values = { name: string; key: string; description: string | null };
 

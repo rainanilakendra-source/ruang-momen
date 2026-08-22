@@ -1,14 +1,31 @@
 import type { Metadata } from "next";
+import { forbidden } from "next/navigation";
+import { RoleLoginPortal } from "../_components/role-login-portal";
 import { StatCard } from "../_components/superadmin/stat-card";
-import { requireRole } from "../lib/auth";
+import { getCurrentUser } from "../lib/auth";
 import { formatBytes } from "../lib/format";
 import { prisma } from "../lib/prisma";
-import { ROLES } from "../lib/roles";
+import { hasRole, ROLES } from "../lib/roles";
+import { loginSuperAdmin } from "../masuk/actions";
 
 export const metadata: Metadata = { title: "Super Admin — Ruang Momen" };
 
 export default async function SuperAdminPage() {
-  await requireRole(ROLES.SUPER_ADMIN);
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return (
+      <RoleLoginPortal
+        roleLabel="Super Admin"
+        loginAction={loginSuperAdmin}
+      />
+    );
+  }
+
+  if (!hasRole(user, ROLES.SUPER_ADMIN)) {
+    forbidden();
+  }
+
   const [totalUsers, totalRooms, photoStats] = await Promise.all([
     prisma.user.count(),
     prisma.event.count(),

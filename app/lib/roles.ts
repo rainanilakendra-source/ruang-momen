@@ -20,7 +20,7 @@ export function hasRole(user: UserWithRole, role: Role | readonly Role[]): boole
 }
 
 export function rolesForProtectedPath(pathname: string): readonly Role[] | null {
-  if (pathname === "/superadmin" || pathname.startsWith("/superadmin/")) return SUPER_ADMIN_ROLES;
+  if (pathname === "/incroet" || pathname.startsWith("/incroet/")) return SUPER_ADMIN_ROLES;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return ADMIN_ROLES;
   return null;
 }

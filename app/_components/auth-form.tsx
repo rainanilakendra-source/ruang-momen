@@ -8,6 +8,10 @@ import { AppIcon, type AppIconName } from "./app-icons";
 import { useI18n } from "./i18n-provider";
 
 type AuthMode = "masuk" | "daftar";
+type LoginAction = (
+  state: LoginState,
+  formData: FormData,
+) => Promise<LoginState>;
 
 const inputClass = "w-full rounded-xl border border-[#F5F0E7]/10 bg-[#071727]/70 px-11 py-3.5 text-sm text-[#F5F0E7] outline-none transition placeholder:text-[#AEB8BE]/45 hover:border-[#F5F0E7]/20 focus:border-[#D6B56F]/65 focus:ring-4 focus:ring-[#D6B56F]/10";
 
@@ -26,7 +30,13 @@ function Field({ label, name, type = "text", autoComplete, icon, placeholder, mi
 const initialRegisterState: RegisterState = { error: null };
 const initialLoginState: LoginState = { error: null };
 
-export function AuthForm({ mode }: { mode: AuthMode }) {
+export function AuthForm({
+  mode,
+  loginAction: selectedLoginAction = loginUser,
+}: {
+  mode: AuthMode;
+  loginAction?: LoginAction;
+}) {
   const { t } = useI18n();
   const isLogin = mode === "masuk";
   const [registerState, registerAction, isPending] = useActionState(
@@ -34,7 +44,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     initialRegisterState,
   );
   const [loginState, loginAction, isLoginPending] = useActionState(
-    loginUser,
+    selectedLoginAction,
     initialLoginState,
   );
   const authState = isLogin ? loginState : registerState;

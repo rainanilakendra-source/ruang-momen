@@ -1,11 +1,20 @@
 import type { ReactNode } from "react";
+import { forbidden } from "next/navigation";
 import { SuperAdminHeader } from "../_components/superadmin/superadmin-header";
 import { SuperAdminSidebar } from "../_components/superadmin/superadmin-sidebar";
-import { requireRole } from "../lib/auth";
-import { ROLES } from "../lib/roles";
+import { getCurrentUser } from "../lib/auth";
+import { hasRole, ROLES } from "../lib/roles";
 
 export default async function SuperAdminLayout({ children }: { children: ReactNode }) {
-  const user = await requireRole(ROLES.SUPER_ADMIN);
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return children;
+  }
+
+  if (!hasRole(user, ROLES.SUPER_ADMIN)) {
+    forbidden();
+  }
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#071727] text-[#F5F0E7] lg:pl-[264px]">

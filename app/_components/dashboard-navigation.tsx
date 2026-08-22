@@ -31,7 +31,7 @@ function isActive(pathname: string, item: NavItem) {
   if (item.label === "Paket & Upgrade") return pathname.startsWith("/dashboard/paket");
   if (item.label === "Langganan") return pathname.startsWith("/dashboard/langganan");
   if (item.label === "Admin Orders") return pathname.startsWith("/admin/orders");
-  if (item.label === "Super Admin") return pathname.startsWith("/superadmin");
+  if (item.label === "Super Admin") return pathname.startsWith("/incroet");
   return Boolean(item.match && pathname === item.match);
 }
 
@@ -51,7 +51,7 @@ export function DashboardNavigation({ showAdminOrders = false, showSuperAdmin = 
   const visibleMainItems: NavItem[] = [
     ...mainItems,
     ...(showAdminOrders ? [{ label: "Admin Orders", labelKey: "navigation.adminOrders", icon: "lock" as const, href: "/admin/orders", match: "/admin/orders" }] : []),
-    ...(showSuperAdmin ? [{ label: "Super Admin", labelKey: "navigation.superAdmin", icon: "lock" as const, href: "/superadmin", match: "/superadmin" }] : []),
+    ...(showSuperAdmin ? [{ label: "Super Admin", labelKey: "navigation.superAdmin", icon: "lock" as const, href: "/incroet", match: "/incroet" }] : []),
   ];
 
   return (

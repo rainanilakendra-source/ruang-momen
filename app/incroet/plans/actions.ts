@@ -69,8 +69,8 @@ export async function createPlan(_state: PlanFormState, formData: FormData): Pro
     return { error: "Plan gagal dibuat. Silakan coba lagi." };
   }
 
-  revalidatePath("/superadmin/plans");
-  redirect("/superadmin/plans");
+  revalidatePath("/incroet/plans");
+  redirect("/incroet/plans");
 }
 
 export async function updatePlan(planId: string, _state: PlanFormState, formData: FormData): Promise<PlanFormState> {
@@ -97,8 +97,8 @@ export async function updatePlan(planId: string, _state: PlanFormState, formData
     return { error: "Plan gagal diperbarui. Silakan coba lagi." };
   }
 
-  revalidatePath("/superadmin/plans");
-  redirect("/superadmin/plans");
+  revalidatePath("/incroet/plans");
+  redirect("/incroet/plans");
 }
 
 export async function togglePlanStatus(planId: string): Promise<void> {
@@ -106,7 +106,7 @@ export async function togglePlanStatus(planId: string): Promise<void> {
   const plan = await prisma.plan.findUnique({ where: { id: planId }, select: { active: true } });
   if (!plan) return;
   await prisma.plan.update({ where: { id: planId }, data: { active: !plan.active }, select: { id: true } });
-  revalidatePath("/superadmin/plans");
+  revalidatePath("/incroet/plans");
 }
 
 export async function updatePlanFeatures(planId: string, formData: FormData): Promise<void> {
@@ -118,5 +118,5 @@ export async function updatePlanFeatures(planId: string, formData: FormData): Pr
     prisma.planFeature.deleteMany({ where: { planId } }),
     prisma.planFeature.createMany({ data: features.map(({ id: featureId }) => ({ planId, featureId })), skipDuplicates: true }),
   ]);
-  revalidatePath("/superadmin/plans");
+  revalidatePath("/incroet/plans");
 }

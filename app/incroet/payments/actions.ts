@@ -69,8 +69,8 @@ export async function createPaymentMethod(_state: PaymentFormState, formData: Fo
     if (qr.data) await storage.delete(qr.data.key).catch(() => undefined);
     return { error: "Metode pembayaran gagal dibuat." };
   }
-  revalidatePath("/superadmin/payments");
-  redirect("/superadmin/payments");
+  revalidatePath("/incroet/payments");
+  redirect("/incroet/payments");
 }
 
 export async function updatePaymentMethod(paymentMethodId: string, _state: PaymentFormState, formData: FormData): Promise<PaymentFormState> {
@@ -92,8 +92,8 @@ export async function updatePaymentMethod(paymentMethodId: string, _state: Payme
   }
   const oldKey = existing.qrImageUrl ? paymentQrStorageKey(paymentMethodId, existing.qrImageUrl) : null;
   if (qr.data && oldKey) await storage.delete(oldKey).catch(() => undefined);
-  revalidatePath("/superadmin/payments");
-  redirect("/superadmin/payments");
+  revalidatePath("/incroet/payments");
+  redirect("/incroet/payments");
 }
 
 export async function togglePaymentMethod(paymentMethodId: string): Promise<void> {
@@ -101,7 +101,7 @@ export async function togglePaymentMethod(paymentMethodId: string): Promise<void
   const method = await prisma.paymentMethod.findUnique({ where: { id: paymentMethodId }, select: { active: true } });
   if (!method) return;
   await prisma.paymentMethod.update({ where: { id: paymentMethodId }, data: { active: !method.active }, select: { id: true } });
-  revalidatePath("/superadmin/payments");
+  revalidatePath("/incroet/payments");
 }
 
 export async function deletePaymentMethod(paymentMethodId: string): Promise<void> {
@@ -111,5 +111,5 @@ export async function deletePaymentMethod(paymentMethodId: string): Promise<void
   await prisma.paymentMethod.delete({ where: { id: paymentMethodId } });
   const key = method.qrImageUrl ? paymentQrStorageKey(paymentMethodId, method.qrImageUrl) : null;
   if (key) await storage.delete(key).catch(() => undefined);
-  revalidatePath("/superadmin/payments");
+  revalidatePath("/incroet/payments");
 }
