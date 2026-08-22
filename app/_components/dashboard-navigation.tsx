@@ -18,7 +18,7 @@ const mainItems: NavItem[] = [
   { label: "Paket & Upgrade", labelKey: "navigation.plansUpgrade", icon: "billing", href: "/dashboard/paket", match: "/dashboard/paket" },
   { label: "Langganan", labelKey: "navigation.subscription", icon: "calendar", href: "/dashboard/langganan", match: "/dashboard/langganan" },
   { label: "My Orders", labelKey: "navigation.orders", icon: "billing", href: "/dashboard/orders", match: "/dashboard/orders" },
-  { label: "Akun", labelKey: "common.account", icon: "account" },
+  { label: "Akun", labelKey: "common.account", icon: "account", href: "/dashboard/akun", match: "/dashboard/akun" },
 ];
 
 const bottomItems: NavItem[] = [

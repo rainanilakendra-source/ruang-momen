@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "events" ADD COLUMN     "frame_key" TEXT NOT NULL DEFAULT 'NONE',
+ADD COLUMN     "theme_key" TEXT NOT NULL DEFAULT 'MIDNIGHT';

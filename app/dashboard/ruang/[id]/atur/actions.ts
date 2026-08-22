@@ -5,8 +5,11 @@ import { revalidatePath } from "next/cache";
 import type { EventType } from "../../../../generated/prisma/enums";
 import { requireUser } from "../../../../lib/auth";
 import { EVENT_TYPES } from "../../../../lib/event";
+import { resolveFrameKey, resolveThemeKey } from "../../../../lib/event-appearance";
 import { prisma } from "../../../../lib/prisma";
 import { storage } from "../../../../lib/storage";
+import { getUserActivePlan, hasPlanFeature } from "../../../../lib/plan-limits";
+import { PLAN_FEATURES } from "../../../../lib/plans";
 
 const MAX_COVER_BYTES = 10 * 1024 * 1024;
 const COVER_EXTENSIONS = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as const;
@@ -45,7 +48,7 @@ function hasMatchingSignature(bytes: Uint8Array, mimeType: keyof typeof COVER_EX
 
 export async function saveRoomSettings(eventId: string, _previousState: RoomSettingsState, formData: FormData): Promise<RoomSettingsState> {
   const user = await requireUser();
-  const event = await prisma.event.findFirst({ where: { id: eventId, ownerId: user.id }, select: { slug: true, coverStorageKey: true } });
+  const event = await prisma.event.findFirst({ where: { id: eventId, ownerId: user.id }, select: { slug: true, coverStorageKey: true, themeKey: true, frameKey: true, guestGalleryEnabled: true, guestDownloadEnabled: true } });
   if (!event) return { status: "error", message: "Pengaturan gagal disimpan. Silakan coba lagi." };
 
   const name = stringValue(formData, "eventName").trim();
@@ -54,6 +57,8 @@ export async function saveRoomSettings(eventId: string, _previousState: RoomSett
   const timezoneOffset = Number(stringValue(formData, "timezoneOffset"));
   const startsValue = stringValue(formData, "uploadStartsAt");
   const endsValue = stringValue(formData, "uploadEndsAt");
+  const themeKey = resolveThemeKey(stringValue(formData, "themeKey"));
+  const frameKey = resolveFrameKey(stringValue(formData, "frameKey"));
   const uploadStartsAt = parseLocalDateTime(startsValue, timezoneOffset);
   const uploadEndsAt = parseLocalDateTime(endsValue, timezoneOffset);
 
@@ -63,6 +68,12 @@ export async function saveRoomSettings(eventId: string, _previousState: RoomSett
   if (!eventDate) return { status: "error", message: "Masukkan tanggal acara yang valid." };
   if ((startsValue && !uploadStartsAt) || (endsValue && !uploadEndsAt)) return { status: "error", message: "Masukkan waktu masa aktif yang valid." };
   if (uploadStartsAt && uploadEndsAt && uploadEndsAt <= uploadStartsAt) return { status: "error", message: "Waktu berakhir harus setelah waktu mulai." };
+  const [activePlan, galleryAllowed, downloadAllowed, appearanceAllowed] = await Promise.all([getUserActivePlan(user.id), hasPlanFeature(user.id, PLAN_FEATURES.GALLERY), hasPlanFeature(user.id, PLAN_FEATURES.DOWNLOAD_ORIGINAL), hasPlanFeature(user.id, PLAN_FEATURES.CUSTOM_BRANDING)]);
+  if (!activePlan?.plan.limit) return { status: "error", message: "Paket aktif dengan limit yang valid diperlukan untuk mengatur ruang." };
+  if (uploadStartsAt && uploadEndsAt) {
+    const activeDays = Math.ceil((uploadEndsAt.getTime() - uploadStartsAt.getTime()) / 86_400_000);
+    if (activeDays > activePlan.plan.limit.maxActiveDays) return { status: "error", message: `Masa aktif maksimal paket ini adalah ${activePlan.plan.limit.maxActiveDays} hari.` };
+  }
 
   const coverValue = formData.get("cover");
   const cover = coverValue instanceof File && coverValue.size > 0 ? coverValue : null;
@@ -89,9 +100,11 @@ export async function saveRoomSettings(eventId: string, _previousState: RoomSett
         name,
         type: type as EventType,
         eventDate,
+        themeKey: appearanceAllowed ? themeKey : event.themeKey,
+        frameKey: appearanceAllowed ? frameKey : event.frameKey,
         guestUploadEnabled: formData.get("guestUploadEnabled") === "on",
-        guestGalleryEnabled: formData.get("guestGalleryEnabled") === "on",
-        guestDownloadEnabled: formData.get("guestDownloadEnabled") === "on",
+        guestGalleryEnabled: galleryAllowed ? formData.get("guestGalleryEnabled") === "on" : event.guestGalleryEnabled,
+        guestDownloadEnabled: downloadAllowed ? formData.get("guestDownloadEnabled") === "on" : event.guestDownloadEnabled,
         uploadStartsAt,
         uploadEndsAt,
         ...(newCoverKey ? { coverStorageKey: newCoverKey } : {}),
@@ -106,6 +119,7 @@ export async function saveRoomSettings(eventId: string, _previousState: RoomSett
   revalidatePath(`/dashboard/ruang/${eventId}`);
   revalidatePath(`/dashboard/ruang/${eventId}/atur`);
   revalidatePath(`/r/${event.slug}`);
+  revalidatePath(`/r/${event.slug}/album`);
   return { status: "success", message: "Pengaturan ruang tersimpan." };
 }
 

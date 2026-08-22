@@ -7,14 +7,20 @@ import {
   parseGuestReactionIdentifier,
 } from "../../../../../../lib/guest-reaction";
 import { prisma } from "../../../../../../lib/prisma";
+import { hasPlanFeature } from "../../../../../../lib/plan-limits";
+import { PLAN_FEATURES } from "../../../../../../lib/plans";
 
 const MAX_TRANSACTION_ATTEMPTS = 3;
 
 function isRetryableTransactionError(error: unknown): boolean {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
-    (error.code === "P2002" || error.code === "P2034")
+    (error.code === "P2002" || error.code === "P2025" || error.code === "P2034")
   );
+}
+
+function retryDelay(attempt: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, attempt * 20));
 }
 
 export async function POST(
@@ -31,11 +37,12 @@ export async function POST(
       id: photoId,
       event: { slug, guestGalleryEnabled: true },
     },
-    select: { id: true, eventId: true },
+    select: { id: true, eventId: true, event: { select: { ownerId: true } } },
   });
   if (!photo) {
     return Response.json({ error: "Momen tidak ditemukan." }, { status: 404 });
   }
+  if (!(await hasPlanFeature(photo.event.ownerId, PLAN_FEATURES.REACTION))) return Response.json({ error: "Reaction tidak tersedia pada paket ruang ini." }, { status: 403 });
 
   const cookieStore = await cookies();
   const storedIdentifier = parseGuestReactionIdentifier(
@@ -91,6 +98,7 @@ export async function POST(
         attempt < MAX_TRANSACTION_ATTEMPTS &&
         isRetryableTransactionError(error)
       ) {
+        await retryDelay(attempt);
         continue;
       }
       return Response.json(

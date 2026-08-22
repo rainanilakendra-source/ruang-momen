@@ -12,8 +12,11 @@ const features = [
   ["watermark", "Watermark", "Apply a watermark to shared moments."],
   ["analytics", "Analytics", "Show event and gallery analytics."],
   ["custom_branding", "Custom Branding", "Customize the event branding."],
+  ["reaction", "Reaction", "Allow guest reactions on shared moments."],
+  ["guestbook", "Guestbook", "Allow guests to leave event messages."],
+  ["advanced_qr", "Advanced QR", "Use advanced QR Studio tools."],
 ];
-const standardFeatures = new Set(["guest_upload", "camera_mode", "gallery", "download_original", "custom_branding"]);
+const standardFeatures = new Set(["guest_upload", "camera_mode", "gallery", "download_original", "reaction", "guestbook"]);
 const plans = [
   ["BASIC", "Basic", 300, 2147483648n, 3, "basic"],
   ["BASIC_PLUS", "Basic Plus", 750, 5368709120n, 7, "basic"],

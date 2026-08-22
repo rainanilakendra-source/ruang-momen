@@ -18,10 +18,15 @@ const messageKeys: Record<PlanLimitType, string> = {
 export async function getUserActivePlan(userId: string, client: DbClient = prisma) {
   const now = new Date();
   return client.subscription.findFirst({
-    where: { userId, status: SUBSCRIPTION_STATUSES.ACTIVE, startedAt: { lte: now }, expiredAt: { gt: now } },
+    where: { userId, status: SUBSCRIPTION_STATUSES.ACTIVE, startedAt: { lte: now }, expiredAt: { gt: now }, plan: { active: true } },
     orderBy: { startedAt: "desc" },
-    select: { id: true, startedAt: true, expiredAt: true, plan: { select: { id: true, name: true, slug: true, maxGuests: true, maxPhotos: true, storageLimitMb: true } } },
+    select: { id: true, status: true, startedAt: true, expiredAt: true, plan: { select: { id: true, code: true, name: true, slug: true, maxGuests: true, active: true, limit: { select: { maxPhotos: true, maxStorageBytes: true, maxActiveDays: true } }, features: { where: { feature: { active: true } }, select: { feature: { select: { key: true } } } } } } },
   });
+}
+
+export async function hasPlanFeature(userId: string, featureCode: string, client: DbClient = prisma): Promise<boolean> {
+  const subscription = await getUserActivePlan(userId, client);
+  return Boolean(subscription?.plan.features.some(({ feature }) => feature.key === featureCode));
 }
 
 async function distinctGuestNames(userId: string, client: DbClient) {
@@ -37,7 +42,7 @@ export async function getPlanUsage(userId: string, client: DbClient = prisma) {
   ]);
   return {
     subscription,
-    usage: { guests: guestNames.length, photos: photos._count._all, storageBytes: photos._sum.sizeBytes ?? 0 },
+    usage: { guests: guestNames.length, photos: photos._count._all, storageBytes: photos._sum.sizeBytes ?? 0, activeDays: subscription ? Math.max(1, Math.ceil((Date.now() - subscription.startedAt.getTime()) / 86_400_000)) : 0 },
   };
 }
 
@@ -56,17 +61,26 @@ export async function checkPlanLimit(userId: string, limitType: PlanLimitType, o
     limit = subscription.plan.maxGuests;
     if (options.guestName && names.some((name) => name.localeCompare(options.guestName!, undefined, { sensitivity: "accent" }) === 0)) additional = 0;
     if (!options.guestName) additional = 0;
+    return { allowed: true, current, limit, message: "" };
   } else if (limitType === PLAN_LIMIT_TYPES.PHOTO) {
     current = await client.photo.count({ where: { event: { ownerId: userId } } });
-    limit = subscription.plan.maxPhotos;
+    limit = subscription.plan.limit?.maxPhotos ?? 0;
   } else {
     const result = await client.photo.aggregate({ where: { event: { ownerId: userId } }, _sum: { sizeBytes: true } });
     current = result._sum.sizeBytes ?? 0;
-    limit = subscription.plan.storageLimitMb * 1024 * 1024;
+    limit = Number(subscription.plan.limit?.maxStorageBytes ?? BigInt(0));
   }
 
   const allowed = current + additional <= limit;
   return { allowed, current, limit, message: allowed ? "" : translate(language, messageKeys[limitType]) };
+}
+
+const PLUS_PAIRS = [["BASIC", "BASIC_PLUS"], ["STANDARD", "STANDARD_PLUS"], ["PREMIUM", "PREMIUM_PLUS"]] as const;
+
+export async function validatePlusFeatureParity(client: DbClient = prisma) {
+  const plans = await client.plan.findMany({ where: { code: { in: PLUS_PAIRS.flatMap((pair) => [...pair]) } }, select: { code: true, features: { where: { feature: { active: true } }, select: { feature: { select: { key: true } } } } } });
+  const featuresByCode = new Map(plans.map((plan) => [plan.code, plan.features.map(({ feature }) => feature.key).sort()]));
+  return PLUS_PAIRS.map(([base, plus]) => ({ base, plus, consistent: JSON.stringify(featuresByCode.get(base) ?? []) === JSON.stringify(featuresByCode.get(plus) ?? []), baseFeatures: featuresByCode.get(base) ?? [], plusFeatures: featuresByCode.get(plus) ?? [] }));
 }
 
 export class PlanLimitExceededError extends Error {

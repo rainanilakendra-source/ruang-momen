@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { getGuestFrameClass, type FrameKey } from "../../../lib/event-appearance";
 
 export type GuestGalleryPhoto = {
   id: string;
@@ -27,7 +28,7 @@ function ReactionButton({ photo, pending, onToggle, compact = false }: ReactionB
       disabled={pending}
       aria-pressed={photo.reacted}
       aria-label={`${photo.reacted ? "Batalkan suka" : "Suka"}. ${photo.reactionCount} suka`}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D6B56F] disabled:cursor-wait disabled:opacity-60 ${compact ? "px-3 text-xs" : "px-5 text-sm"} ${photo.reacted ? "border-rose-300/30 bg-rose-400/10 text-rose-200" : "border-[#F5F0E7]/15 text-[#F5F0E7] hover:border-[#D6B56F]/35"}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--guest-accent)] disabled:cursor-wait disabled:opacity-60 ${compact ? "px-3 text-xs" : "px-5 text-sm"} ${photo.reacted ? "border-rose-300/30 bg-rose-400/10 text-rose-500" : "border-[var(--guest-border)] text-[var(--guest-text)]"}`}
     >
       <span aria-hidden="true" className="text-lg leading-none">{photo.reacted ? "♥" : "♡"}</span>
       <span>{photo.reactionCount}</span>
@@ -35,12 +36,13 @@ function ReactionButton({ photo, pending, onToggle, compact = false }: ReactionB
   );
 }
 
-export function GuestGalleryViewer({ slug, eventName, photos, downloadEnabled }: { slug: string; eventName: string; photos: GuestGalleryPhoto[]; downloadEnabled: boolean }) {
+export function GuestGalleryViewer({ slug, eventName, photos, downloadEnabled, reactionEnabled, frameKey }: { slug: string; eventName: string; photos: GuestGalleryPhoto[]; downloadEnabled: boolean; reactionEnabled: boolean; frameKey: FrameKey }) {
   const [galleryPhotos, setGalleryPhotos] = useState(photos);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [pendingPhotoIds, setPendingPhotoIds] = useState<Set<string>>(() => new Set());
   const [reactionError, setReactionError] = useState<string | null>(null);
   const pendingRef = useRef(new Set<string>());
+  const reactionQueueRef = useRef<Promise<void>>(Promise.resolve());
   const closeRef = useRef<HTMLButtonElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
   const current = selectedIndex === null ? null : galleryPhotos[selectedIndex];
@@ -63,7 +65,9 @@ export function GuestGalleryViewer({ slug, eventName, photos, downloadEnabled }:
     setGalleryPhotos((currentPhotos) => currentPhotos.map((photo) => photo.id === photoId ? { ...photo, reacted: !photo.reacted, reactionCount: Math.max(0, photo.reactionCount + (photo.reacted ? -1 : 1)) } : photo));
 
     try {
-      const response = await fetch(`/api/public/ruang/${encodeURIComponent(slug)}/reactions/${encodeURIComponent(photoId)}`, { method: "POST" });
+      const request = reactionQueueRef.current.then(() => fetch(`/api/public/ruang/${encodeURIComponent(slug)}/reactions/${encodeURIComponent(photoId)}`, { method: "POST" }));
+      reactionQueueRef.current = request.then(() => undefined, () => undefined);
+      const response = await request;
       const result: unknown = await response.json();
       if (!response.ok || !result || typeof result !== "object" || !("liked" in result) || typeof result.liked !== "boolean" || !("count" in result) || typeof result.count !== "number" || !Number.isInteger(result.count) || result.count < 0) throw new Error("Invalid reaction response");
       const reaction = result as { liked: boolean; count: number };
@@ -103,12 +107,12 @@ export function GuestGalleryViewer({ slug, eventName, photos, downloadEnabled }:
   return <>
     {reactionError && <p role="status" className="mb-3 rounded-xl border border-red-300/20 bg-red-400/10 px-4 py-3 text-sm text-red-100">{reactionError}</p>}
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-      {galleryPhotos.map((photo, index) => <article key={photo.id} className="group overflow-hidden rounded-xl border border-[#F5F0E7]/[.08] bg-[#0A1D30] transition hover:-translate-y-0.5 hover:border-[#D6B56F]/30">
+      {galleryPhotos.map((photo, index) => <article key={photo.id} className={`group overflow-hidden transition hover:-translate-y-0.5 ${getGuestFrameClass(frameKey)}`}>
         <button type="button" onClick={() => openViewer(index)} aria-label={`Buka momen ${index + 1} dari ${eventName}`} className="block w-full text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#D6B56F]">
           <span className="relative block aspect-square overflow-hidden"><Image src={mediaUrl(photo.id)} alt={`Momen ${eventName}`} fill sizes="(min-width:1280px) 19vw, (min-width:1024px) 24vw, (min-width:640px) 32vw, 49vw" unoptimized className="object-cover transition duration-300 group-hover:scale-[1.02]" /></span>
-          {(photo.guestName || photo.sourceLabel) && <span className="flex flex-col gap-1 px-3 pt-2.5 text-[11px]">{photo.guestName && <span className="font-semibold text-[#F1DDA7]">Dikirim oleh {photo.guestName}</span>}{photo.sourceLabel && <span className="text-[#D6B56F]">Sudut: {photo.sourceLabel}</span>}</span>}
+          {(photo.guestName || photo.sourceLabel) && <span className="flex flex-col gap-1 px-3 pt-2.5 text-[11px]">{photo.guestName && <span className="font-semibold text-[var(--guest-accent-soft)]">Dikirim oleh {photo.guestName}</span>}{photo.sourceLabel && <span className="text-[var(--guest-accent)]">Sudut: {photo.sourceLabel}</span>}</span>}
         </button>
-        <div className="px-3 py-2.5"><ReactionButton photo={photo} pending={pendingPhotoIds.has(photo.id)} onToggle={(id) => { void toggleReaction(id); }} compact /></div>
+        {reactionEnabled && <div className="px-3 py-2.5"><ReactionButton photo={photo} pending={pendingPhotoIds.has(photo.id)} onToggle={(id) => { void toggleReaction(id); }} compact /></div>}
       </article>)}
     </div>
 
@@ -117,7 +121,7 @@ export function GuestGalleryViewer({ slug, eventName, photos, downloadEnabled }:
       <div className="relative my-3 min-h-0 flex-1"><Image src={mediaUrl(current.id)} alt={`Momen ${eventName}`} fill sizes="100vw" unoptimized priority className="object-contain" /></div>
       <div className="flex flex-wrap items-center justify-center gap-2">
         {galleryPhotos.length > 1 && <button type="button" onClick={() => setSelectedIndex((activeIndex - 1 + galleryPhotos.length) % galleryPhotos.length)} className="min-h-11 rounded-xl border border-[#F5F0E7]/15 px-4 text-sm font-semibold">← Sebelumnya</button>}
-        <ReactionButton photo={current} pending={pendingPhotoIds.has(current.id)} onToggle={(id) => { void toggleReaction(id); }} />
+        {reactionEnabled && <ReactionButton photo={current} pending={pendingPhotoIds.has(current.id)} onToggle={(id) => { void toggleReaction(id); }} />}
         {galleryPhotos.length > 1 && <button type="button" onClick={() => setSelectedIndex((activeIndex + 1) % galleryPhotos.length)} className="min-h-11 rounded-xl border border-[#F5F0E7]/15 px-4 text-sm font-semibold">Berikutnya →</button>}
         {downloadEnabled && <a href={`${mediaUrl(current.id)}?download=1`} download className="inline-flex min-h-11 items-center rounded-xl bg-[#F5F0E7] px-5 text-sm font-bold text-[#071727]">Unduh Foto</a>}
       </div>

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { EVENT_TYPE_LABELS, EVENT_TYPES } from "../../../../lib/event";
+import { FRAME_DETAILS, FRAME_KEYS, THEME_DETAILS, THEME_KEYS } from "../../../../lib/event-appearance";
+import { useI18n } from "../../../../_components/i18n-provider";
 import { removeRoomCover, saveRoomSettings, type RoomSettingsState } from "./actions";
 import type { EventType } from "../../../../generated/prisma/enums";
 
@@ -15,6 +17,8 @@ type SettingsEvent = {
   type: EventType;
   eventDate: string;
   hasCover: boolean;
+  themeKey: string;
+  frameKey: string;
   guestUploadEnabled: boolean;
   guestGalleryEnabled: boolean;
   guestDownloadEnabled: boolean;
@@ -31,6 +35,7 @@ function localDateTimeValue(iso: string): string {
 }
 
 export function RoomSettingsForm({ event }: { event: SettingsEvent }) {
+  const { t } = useI18n();
   const router = useRouter();
   const startsRef = useRef<HTMLInputElement>(null);
   const endsRef = useRef<HTMLInputElement>(null);
@@ -98,7 +103,14 @@ export function RoomSettingsForm({ event }: { event: SettingsEvent }) {
       </section>
 
       <section className="rounded-[1.5rem] border border-[#F5F0E7]/[.08] bg-[#0A1D30] p-5 sm:p-7">
-        <p className="text-xs font-bold uppercase tracking-[.18em] text-[#D6B56F]">04</p><h2 className="mt-2 text-xl font-bold">Masa Aktif</h2><p className="mt-2 text-sm text-[#AEB8BE]">Kosongkan waktu jika tidak ingin memberi batas.</p>
+        <p className="text-xs font-bold uppercase tracking-[.18em] text-[#D6B56F]">04</p><h2 className="mt-2 text-xl font-bold">{t("roomAppearance.title")}</h2><p className="mt-2 text-sm text-[#AEB8BE]">{t("roomAppearance.description")}</p>
+        <fieldset className="mt-6"><legend className="text-sm font-bold text-[#E8E3D9]">{t("roomAppearance.theme")}</legend><div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">{THEME_KEYS.map((key) => <label key={key} className="cursor-pointer"><input type="radio" name="themeKey" value={key} defaultChecked={event.themeKey === key} className="peer sr-only" /><span className={`flex min-h-20 items-end rounded-xl border border-[#F5F0E7]/10 p-3 text-xs font-bold transition peer-checked:border-[#D6B56F] peer-checked:ring-2 peer-checked:ring-[#D6B56F]/20 ${THEME_DETAILS[key].preview}`}>{THEME_DETAILS[key].label}</span></label>)}</div></fieldset>
+        <fieldset className="mt-6"><legend className="text-sm font-bold text-[#E8E3D9]">{t("roomAppearance.frame")}</legend><div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">{FRAME_KEYS.map((key) => <label key={key} className="cursor-pointer"><input type="radio" name="frameKey" value={key} defaultChecked={event.frameKey === key} className="peer sr-only" /><span className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-[#F5F0E7]/10 bg-[#071727]/45 p-3 text-xs font-bold transition peer-checked:border-[#D6B56F] peer-checked:ring-2 peer-checked:ring-[#D6B56F]/20"><span className={`block h-10 w-14 bg-[#8B7761] ${FRAME_DETAILS[key].preview}`} /><span>{key === "NONE" ? t("roomAppearance.noFrame") : FRAME_DETAILS[key].label}</span></span></label>)}</div></fieldset>
+        <p className="mt-5 text-xs text-[#AEB8BE]">{t("roomAppearance.saveHint")}</p>
+      </section>
+
+      <section className="rounded-[1.5rem] border border-[#F5F0E7]/[.08] bg-[#0A1D30] p-5 sm:p-7">
+        <p className="text-xs font-bold uppercase tracking-[.18em] text-[#D6B56F]">05</p><h2 className="mt-2 text-xl font-bold">Masa Aktif</h2><p className="mt-2 text-sm text-[#AEB8BE]">Kosongkan waktu jika tidak ingin memberi batas.</p>
         <div className="mt-5 grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold text-[#E8E3D9]">Mulai menerima momen<input ref={startsRef} className={`${fieldClass} scheme-dark`} name="uploadStartsAt" type="datetime-local" /></label><label className="block text-sm font-semibold text-[#E8E3D9]">Berhenti menerima momen<input ref={endsRef} className={`${fieldClass} scheme-dark`} name="uploadEndsAt" type="datetime-local" /></label></div>
       </section>
 

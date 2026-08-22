@@ -7,6 +7,8 @@ import { formatBytes } from "../../../../lib/format";
 import { prisma } from "../../../../lib/prisma";
 import { formatPhotoSource } from "../../../../lib/photo-source";
 import { GalleryViewer } from "./gallery-viewer";
+import { hasPlanFeature } from "../../../../lib/plan-limits";
+import { PLAN_FEATURES } from "../../../../lib/plans";
 
 export const metadata: Metadata = { title: "Album Ruang — Ruang Momen" };
 
@@ -18,13 +20,17 @@ export default async function RoomAlbumPage({ params }: { params: Promise<{ id: 
     select: { name: true, photos: { orderBy: { createdAt: "desc" }, select: { id: true, originalName: true, sizeBytes: true, source: true, guestName: true, createdAt: true } } },
   });
   if (!event) notFound();
+  const zipAllowed = await hasPlanFeature(user.id, PLAN_FEATURES.ZIP_EXPORT);
 
   const totalBytes = event.photos.reduce((total, photo) => total + photo.sizeBytes, 0);
   const photos = event.photos.map((photo) => ({ id: photo.id, originalName: photo.originalName, sizeLabel: formatBytes(photo.sizeBytes), guestName: photo.guestName, sourceLabel: photo.source ? formatPhotoSource(photo.source) : null, uploadedAt: new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(photo.createdAt) }));
 
   return <>
     <DashboardHeader title={event.name} description="Semua momen yang terkumpul dari tamumu ada di sini." />
-    <p className="mt-8 text-xs font-bold uppercase tracking-[.2em] text-[#D6B56F]">Album Ruang</p>
+    <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+      <p className="text-xs font-bold uppercase tracking-[.2em] text-[#D6B56F]">Album Ruang</p>
+      {photos.length && zipAllowed ? <a href={`/api/dashboard/ruang/${id}/download-all`} className="inline-flex min-h-10 items-center rounded-xl border border-[#D6B56F]/30 bg-[#D6B56F]/10 px-4 text-sm font-bold text-[#F1DDA7] transition hover:bg-[#D6B56F]/20">Download Semua</a> : <span aria-disabled="true" className="inline-flex min-h-10 cursor-not-allowed items-center rounded-xl border border-[#F5F0E7]/[.08] px-4 text-sm font-bold text-[#AEB8BE] opacity-60">Download Semua</span>}
+    </div>
     <section className="mt-4 grid grid-cols-2 gap-3 sm:max-w-lg"><article className="rounded-xl border border-[#F5F0E7]/[.08] bg-[#0A1D30] p-4"><p className="text-xs text-[#AEB8BE]">Total Momen</p><p className="mt-2 text-2xl font-bold">{photos.length}</p></article><article className="rounded-xl border border-[#F5F0E7]/[.08] bg-[#0A1D30] p-4"><p className="text-xs text-[#AEB8BE]">Penyimpanan</p><p className="mt-2 text-2xl font-bold">{formatBytes(totalBytes)}</p></article></section>
     {photos.length ? <section className="mt-7" aria-label="Galeri momen"><GalleryViewer eventName={event.name} photos={photos} /></section> : <section className="mt-7 rounded-2xl border border-[#F5F0E7]/[.08] bg-[#0A1D30] p-8 text-center"><h2 className="text-xl font-bold">Belum ada momen di ruang ini.</h2><p className="mt-2 text-sm text-[#AEB8BE]">Bagikan QR agar tamu dapat mengirim foto mereka.</p><Link href={`/dashboard/ruang/${id}`} className="mt-5 inline-flex min-h-11 items-center rounded-xl border border-[#D6B56F]/25 px-5 text-sm font-bold text-[#F1DDA7]">Kembali ke Ruang</Link></section>}
   </>;

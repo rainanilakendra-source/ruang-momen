@@ -16,6 +16,7 @@ export const PLAN_FEATURES = {
   ZIP_EXPORT: "zip_export",
   ANALYTICS: "analytics",
   ADVANCED_QR: "advanced_qr",
+  GUESTBOOK: "guestbook",
 } as const;
 
 export type PlanFeatureKey = (typeof PLAN_FEATURES)[keyof typeof PLAN_FEATURES];

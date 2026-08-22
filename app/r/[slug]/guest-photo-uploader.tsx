@@ -16,7 +16,7 @@ import { useI18n } from "../../_components/i18n-provider";
 
 type UploadMethod = "camera" | "gallery";
 
-const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"]);
 const MAX_GALLERY_SELECTION = 20;
 const MAX_AUTOMATIC_ATTEMPTS = 4;
 const RETRY_DELAYS_MS = [2_000, 5_000, 10_000, 30_000];
@@ -170,7 +170,7 @@ export function GuestPhotoUploader({ slug, mode, source }: { slug: string; mode:
     const invalidType = files.find((file) => !ALLOWED_MIME_TYPES.has(file.type));
     if (invalidType) {
       input.value = "";
-      setClientError("Gunakan foto berformat JPEG, PNG, atau WebP.");
+      setClientError("Gunakan foto berformat JPEG, PNG, WebP, HEIC, atau HEIF.");
       return;
     }
     const oversized = files.find((file) => file.size > MAX_UPLOAD_BYTES);
@@ -265,7 +265,7 @@ export function GuestPhotoUploader({ slug, mode, source }: { slug: string; mode:
         </section>
       )}
 
-      <p className="mt-4 text-xs text-[#AEB8BE]">JPEG, PNG, atau WebP · Maksimal {MAX_UPLOAD_MB} MB</p>
+      <p className="mt-4 text-xs text-[#AEB8BE]">JPEG, PNG, WebP, HEIC, atau HEIF · Maksimal {MAX_UPLOAD_MB} MB</p>
       <p className="mt-3 text-xs leading-5 text-[#AEB8BE]">Dengan mengirim foto, kamu membagikan foto dan nama yang kamu isi kepada pemilik ruang acara ini. Antrean tersimpan di browser dan dilanjutkan saat halaman ruang ini dibuka kembali.</p>
     </div>
   );

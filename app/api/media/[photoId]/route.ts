@@ -9,13 +9,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ phot
   const { photoId } = await params;
   const photo = await prisma.photo.findFirst({
     where: { id: photoId, event: { ownerId: user.id } },
-    select: { storageKey: true, originalName: true, mimeType: true, sizeBytes: true },
+    select: { storageKey: true, previewStorageKey: true, originalName: true, mimeType: true, sizeBytes: true },
   });
   if (!photo) return new Response("Not found", { status: 404 });
   try {
-    const bytes = await storage.read(photo.storageKey);
-    const headers: Record<string, string> = { "Content-Type": photo.mimeType, "Content-Length": String(photo.sizeBytes), "Cache-Control": "private, max-age=3600", "X-Content-Type-Options": "nosniff" };
-    if (new URL(request.url).searchParams.get("download") === "1") {
+    const download = new URL(request.url).searchParams.get("download") === "1";
+    const displayPreview = !download && photo.previewStorageKey;
+    const bytes = await storage.read(displayPreview || photo.storageKey);
+    const headers: Record<string, string> = { "Content-Type": displayPreview ? "image/jpeg" : photo.mimeType, "Content-Length": String(bytes.byteLength), "Cache-Control": "private, max-age=3600", "X-Content-Type-Options": "nosniff" };
+    if (download) {
       const fallback = `ruang-momen-${photoId}.${photo.mimeType.split("/")[1] === "jpeg" ? "jpg" : photo.mimeType.split("/")[1]}`;
       const safeName = photo.originalName.replace(/["\\]/g, "_");
       headers["Content-Disposition"] = `attachment; filename="${fallback}"; filename*=UTF-8''${encodeURIComponent(safeName)}`;

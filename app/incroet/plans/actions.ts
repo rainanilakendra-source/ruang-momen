@@ -113,10 +113,15 @@ export async function updatePlanFeatures(planId: string, formData: FormData): Pr
   await requireRole(ROLES.SUPER_ADMIN);
   const requestedIds = formData.getAll("featureId").filter((value): value is string => typeof value === "string");
   const features = await prisma.feature.findMany({ where: { id: { in: requestedIds } }, select: { id: true } });
+  const plan = await prisma.plan.findUnique({ where: { id: planId }, select: { code: true } });
+  if (!plan) return;
+  const pairedCode: Record<string, string> = { BASIC: "BASIC_PLUS", BASIC_PLUS: "BASIC", STANDARD: "STANDARD_PLUS", STANDARD_PLUS: "STANDARD", PREMIUM: "PREMIUM_PLUS", PREMIUM_PLUS: "PREMIUM" };
+  const pairedPlan = pairedCode[plan.code] ? await prisma.plan.findUnique({ where: { code: pairedCode[plan.code] }, select: { id: true } }) : null;
+  const targetPlanIds = pairedPlan ? [planId, pairedPlan.id] : [planId];
 
   await prisma.$transaction([
-    prisma.planFeature.deleteMany({ where: { planId } }),
-    prisma.planFeature.createMany({ data: features.map(({ id: featureId }) => ({ planId, featureId })), skipDuplicates: true }),
+    prisma.planFeature.deleteMany({ where: { planId: { in: targetPlanIds } } }),
+    prisma.planFeature.createMany({ data: targetPlanIds.flatMap((targetPlanId) => features.map(({ id: featureId }) => ({ planId: targetPlanId, featureId }))), skipDuplicates: true }),
   ]);
   revalidatePath("/incroet/plans");
 }
