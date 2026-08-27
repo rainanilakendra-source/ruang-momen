@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
-import { forbidden } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import { SuperAdminHeader } from "../_components/superadmin/superadmin-header";
 import { SuperAdminSidebar } from "../_components/superadmin/superadmin-sidebar";
 import { getCurrentUser } from "../lib/auth";
 import { hasRole, ROLES } from "../lib/roles";
+import { createEnrollmentChallenge, TWO_FACTOR_PORTALS } from "../lib/two-factor";
 
 export default async function SuperAdminLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
@@ -14,6 +15,10 @@ export default async function SuperAdminLayout({ children }: { children: ReactNo
 
   if (!hasRole(user, ROLES.SUPER_ADMIN)) {
     forbidden();
+  }
+  if (!user.twoFactorEnabled) {
+    await createEnrollmentChallenge(user.id, user.email, TWO_FACTOR_PORTALS.SUPER_ADMIN);
+    redirect("/setup-2fa");
   }
 
   return (

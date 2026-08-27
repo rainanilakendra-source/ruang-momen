@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { getGuestFrameClass, type FrameKey } from "../../../lib/event-appearance";
+import { useI18n } from "../../../_components/i18n-provider";
 
 export type GuestGalleryPhoto = {
   id: string;
@@ -21,13 +22,14 @@ type ReactionButtonProps = {
 };
 
 function ReactionButton({ photo, pending, onToggle, compact = false }: ReactionButtonProps) {
+  const { t } = useI18n();
   return (
     <button
       type="button"
       onClick={() => onToggle(photo.id)}
       disabled={pending}
       aria-pressed={photo.reacted}
-      aria-label={`${photo.reacted ? "Batalkan suka" : "Suka"}. ${photo.reactionCount} suka`}
+      aria-label={`${photo.reacted ? t("common.unlike") : t("common.like")}. ${photo.reactionCount} ${t("common.likes")}`}
       className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--guest-accent)] disabled:cursor-wait disabled:opacity-60 ${compact ? "px-3 text-xs" : "px-5 text-sm"} ${photo.reacted ? "border-rose-300/30 bg-rose-400/10 text-rose-500" : "border-[var(--guest-border)] text-[var(--guest-text)]"}`}
     >
       <span aria-hidden="true" className="text-lg leading-none">{photo.reacted ? "♥" : "♡"}</span>
@@ -37,6 +39,7 @@ function ReactionButton({ photo, pending, onToggle, compact = false }: ReactionB
 }
 
 export function GuestGalleryViewer({ slug, eventName, photos, downloadEnabled, reactionEnabled, frameKey }: { slug: string; eventName: string; photos: GuestGalleryPhoto[]; downloadEnabled: boolean; reactionEnabled: boolean; frameKey: FrameKey }) {
+  const { t } = useI18n();
   const [galleryPhotos, setGalleryPhotos] = useState(photos);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [pendingPhotoIds, setPendingPhotoIds] = useState<Set<string>>(() => new Set());
@@ -74,7 +77,7 @@ export function GuestGalleryViewer({ slug, eventName, photos, downloadEnabled, r
       setGalleryPhotos((currentPhotos) => currentPhotos.map((photo) => photo.id === photoId ? { ...photo, reacted: reaction.liked, reactionCount: reaction.count } : photo));
     } catch {
       setGalleryPhotos((currentPhotos) => currentPhotos.map((photo) => photo.id === photoId ? previous : photo));
-      setReactionError("Reaction belum berhasil disimpan. Silakan coba lagi.");
+      setReactionError(t("common.reactionFailed"));
     } finally {
       pendingRef.current.delete(photoId);
       setPendingPhotoIds(new Set(pendingRef.current));

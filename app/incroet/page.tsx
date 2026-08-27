@@ -10,14 +10,17 @@ import { loginSuperAdmin } from "../masuk/actions";
 
 export const metadata: Metadata = { title: "Super Admin — Ruang Momen" };
 
-export default async function SuperAdminPage() {
+export default async function SuperAdminPage({ searchParams }: { searchParams: Promise<{ oauth_error?: string | string[]; two_factor_error?: string | string[] }> }) {
   const user = await getCurrentUser();
+  const { oauth_error: oauthError, two_factor_error: twoFactorError } = await searchParams;
 
   if (!user) {
     return (
       <RoleLoginPortal
         roleLabel="Super Admin"
         loginAction={loginSuperAdmin}
+        oauthError={typeof oauthError === "string" ? oauthError : null}
+        twoFactorError={typeof twoFactorError === "string" ? twoFactorError : null}
       />
     );
   }

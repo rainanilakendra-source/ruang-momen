@@ -22,5 +22,5 @@ function resolve(dictionary: unknown, key: string): string | undefined {
 }
 
 export function translate(language: Language, key: string): string {
-  return resolve(dictionaries[language], key) ?? resolve(dictionaries[DEFAULT_LANGUAGE], key) ?? key;
+  return resolve(dictionaries[language], key) ?? resolve(dictionaries[DEFAULT_LANGUAGE], key) ?? "";
 }

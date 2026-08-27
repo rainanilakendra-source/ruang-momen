@@ -10,9 +10,13 @@ type LoginAction = (
 export function RoleLoginPortal({
   roleLabel,
   loginAction,
+  oauthError,
+  twoFactorError,
 }: {
   roleLabel: "Admin" | "Super Admin";
   loginAction: LoginAction;
+  oauthError?: string | null;
+  twoFactorError?: string | null;
 }) {
   return (
     <AuthShell
@@ -20,7 +24,7 @@ export function RoleLoginPortal({
       title={`Masuk sebagai ${roleLabel}`}
       description={`Gunakan akun ${roleLabel} Ruang Momen untuk melanjutkan.`}
     >
-      <AuthForm mode="masuk" loginAction={loginAction} />
+      <AuthForm mode="masuk" loginAction={loginAction} googlePortal={roleLabel === "Admin" ? "admin" : "superadmin"} oauthError={oauthError} twoFactorError={twoFactorError} />
     </AuthShell>
   );
 }

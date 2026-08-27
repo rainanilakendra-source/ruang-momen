@@ -5,14 +5,16 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildGuestUrl, generateQrDataUrl, QR_MODE_DETAILS, QR_MODES, type QrMode } from "../lib/qr";
 import { normalizePhotoSource } from "../lib/photo-source";
+import { useI18n } from "./i18n-provider";
 
 export type QrVariant = { guestUrl: string; qrDataUrl: string; printHref: string; downloadName: string };
 
 export function ShareRoomActions({ eventName, eventId, eventSlug, baseUrl, variants, knownSources = [] }: { eventName: string; eventId: string; eventSlug: string; baseUrl: string; variants: Record<QrMode, QrVariant>; knownSources?: string[] }) {
+  const { t } = useI18n();
   const [mode, setMode] = useState<QrMode>("general");
   const [sourceInput, setSourceInput] = useState("");
   const [generatedQr, setGeneratedQr] = useState<{ guestUrl: string; dataUrl: string } | null>(null);
-  const [copyFeedback, setCopyFeedback] = useState("Salin Link");
+  const [copyFeedback, setCopyFeedback] = useState(t("ui.copyLink"));
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const source = normalizePhotoSource(sourceInput);
   const guestUrl = useMemo(() => buildGuestUrl({ baseUrl, slug: eventSlug, mode, source }), [baseUrl, eventSlug, mode, source]);
@@ -33,7 +35,7 @@ export function ShareRoomActions({ eventName, eventId, eventSlug, baseUrl, varia
 
   const selectMode = (nextMode: QrMode) => {
     setMode(nextMode);
-    setCopyFeedback("Salin Link");
+    setCopyFeedback(t("ui.copyLink"));
     if (feedbackTimer.current) clearTimeout(feedbackTimer.current);
   };
 
@@ -54,9 +56,9 @@ export function ShareRoomActions({ eventName, eventId, eventSlug, baseUrl, varia
       textarea.setSelectionRange(0, textarea.value.length);
       try { copied = document.execCommand("copy"); } catch { copied = false; } finally { textarea.remove(); }
     }
-    setCopyFeedback(copied ? "Tautan tersalin" : "Tidak dapat menyalin otomatis. Salin tautan secara manual.");
+    setCopyFeedback(copied ? t("ui.linkCopied") : t("ui.copyFailed"));
     if (feedbackTimer.current) clearTimeout(feedbackTimer.current);
-    feedbackTimer.current = setTimeout(() => setCopyFeedback("Salin Link"), 1800);
+    feedbackTimer.current = setTimeout(() => setCopyFeedback(t("ui.copyLink")), 1800);
   };
 
   return <>

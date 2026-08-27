@@ -25,12 +25,6 @@ const plans = [
   ["PREMIUM", "Premium", 6000, 53687091200n, 60, "premium"],
   ["PREMIUM_PLUS", "Premium Plus", 12000, 107374182400n, 90, "premium"],
 ];
-const managedPlans = [
-  ["BASIC", "basic", 49000, 50, 500, 1024, 30],
-  ["STANDARD", "standard", 99000, 300, 5000, 10240, 30],
-  ["PREMIUM", "premium", 199000, 1000, 20000, 51200, 30],
-];
-
 await client.connect();
 try {
   await client.query("BEGIN");
@@ -45,42 +39,35 @@ try {
   for (const [key, name, description] of features) {
     await client.query(
       `INSERT INTO features (id, name, key, description, active, updated_at) VALUES ($1, $2, $3, $4, true, CURRENT_TIMESTAMP)
-       ON CONFLICT (key) DO UPDATE SET name = EXCLUDED.name, description = EXCLUDED.description, updated_at = CURRENT_TIMESTAMP`,
+       ON CONFLICT (key) DO NOTHING`,
       [`feature_${key}`, name, key, description],
     );
   }
   for (const [code, name, maxPhotos, maxStorageBytes, maxActiveDays, tier] of plans) {
     const planId = `plan_${code.toLowerCase()}`;
     const slug = code.toLowerCase().replaceAll("_", "-");
-    await client.query(
+    const insertedPlan = await client.query(
       `INSERT INTO plans (id, code, name, slug, is_active, updated_at)
        VALUES ($1, $2, $3, $4, true, CURRENT_TIMESTAMP)
-       ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, slug = EXCLUDED.slug, is_active = true, updated_at = CURRENT_TIMESTAMP`,
+       ON CONFLICT (code) DO NOTHING
+       RETURNING id`,
       [planId, code, name, slug],
     );
     const { rows: [{ id }] } = await client.query("SELECT id FROM plans WHERE code = $1", [code]);
-    for (const [key] of features) {
-      const assigned = key === "guest_upload" || tier === "premium" || (tier === "standard" && standardFeatures.has(key));
-      if (assigned) await client.query(
-        `INSERT INTO plan_features (id, plan_id, feature_id) SELECT $1, $2, id FROM features WHERE key = $3 ON CONFLICT (plan_id, feature_id) DO NOTHING`,
-        [`plan_feature_${code.toLowerCase()}_${key}`, id, key],
-      );
+    if (insertedPlan.rowCount === 1) {
+      for (const [key] of features) {
+        const assigned = key === "guest_upload" || tier === "premium" || (tier === "standard" && standardFeatures.has(key));
+        if (assigned) await client.query(
+          `INSERT INTO plan_features (id, plan_id, feature_id) SELECT $1, $2, id FROM features WHERE key = $3 ON CONFLICT (plan_id, feature_id) DO NOTHING`,
+          [`plan_feature_${code.toLowerCase()}_${key}`, id, key],
+        );
+      }
     }
     await client.query(
       `INSERT INTO plan_limits (id, plan_id, max_photos, max_storage_bytes, max_active_days)
        VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (plan_id) DO UPDATE SET max_photos = EXCLUDED.max_photos, max_storage_bytes = EXCLUDED.max_storage_bytes, max_active_days = EXCLUDED.max_active_days`,
+       ON CONFLICT (plan_id) DO NOTHING`,
       [`limit_${code.toLowerCase()}`, id, maxPhotos, maxStorageBytes.toString(), maxActiveDays],
-    );
-  }
-  for (const [code, slug, price, maxGuests, maxPhotos, storageLimitMb, durationDays] of managedPlans) {
-    await client.query(
-      `UPDATE plans SET slug = $2, price = $3, max_guests = $4, max_photos = $5, storage_limit_mb = $6, duration_days = $7, is_active = true, updated_at = CURRENT_TIMESTAMP WHERE code = $1`,
-      [code, slug, price, maxGuests, maxPhotos, storageLimitMb, durationDays],
-    );
-    await client.query(
-      `UPDATE plan_limits SET max_photos = $2, max_storage_bytes = $3, max_active_days = $4 WHERE plan_id = (SELECT id FROM plans WHERE code = $1)`,
-      [code, maxPhotos, (BigInt(storageLimitMb) * BigInt(1024 * 1024)).toString(), durationDays],
     );
   }
   await seedSuperAdmin(client);

@@ -33,9 +33,15 @@ const initialLoginState: LoginState = { error: null };
 export function AuthForm({
   mode,
   loginAction: selectedLoginAction = loginUser,
+  googlePortal = "user",
+  oauthError = null,
+  twoFactorError = null,
 }: {
   mode: AuthMode;
   loginAction?: LoginAction;
+  googlePortal?: "user" | "admin" | "superadmin";
+  oauthError?: string | null;
+  twoFactorError?: string | null;
 }) {
   const { t } = useI18n();
   const isLogin = mode === "masuk";
@@ -73,6 +79,8 @@ export function AuthForm({
           {authState.error}
         </p>
       )}
+      {oauthError && <p role="alert" className="rounded-xl border border-red-300/20 bg-red-400/10 px-4 py-3 text-sm text-red-100">{t(`oauth.errors.${oauthError}`)}</p>}
+      {twoFactorError && <p role="alert" className="rounded-xl border border-red-300/20 bg-red-400/10 px-4 py-3 text-sm text-red-100">{t(`twoFactor.errors.${twoFactorError}`)}</p>}
 
       <button type="submit" disabled={pending} className="flex min-h-12 w-full items-center justify-center rounded-xl bg-[#F5F0E7] px-5 text-sm font-bold text-[#071727] shadow-[0_10px_24px_rgba(0,0,0,.18)] transition hover:-translate-y-0.5 hover:bg-[#D6B56F] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D6B56F] disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0">
         {isLogin ? pending ? t("auth.loggingIn") : t("auth.login") : pending ? t("auth.registering") : t("auth.register")}
@@ -80,10 +88,10 @@ export function AuthForm({
 
       <div className="flex items-center gap-3 text-[11px] uppercase tracking-[.16em] text-[#AEB8BE]/65"><span className="h-px flex-1 bg-[#F5F0E7]/10" />{t("auth.or")}<span className="h-px flex-1 bg-[#F5F0E7]/10" /></div>
 
-      <button type="button" className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-[#F5F0E7]/12 bg-[#F5F0E7]/[.035] px-5 text-sm font-semibold text-[#F5F0E7] transition hover:border-[#D6B56F]/35 hover:bg-[#F5F0E7]/[.06] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D6B56F]">
+      <Link href={`/api/auth/google/start?portal=${googlePortal}`} className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-[#F5F0E7]/12 bg-[#F5F0E7]/[.035] px-5 text-sm font-semibold text-[#F5F0E7] transition hover:border-[#D6B56F]/35 hover:bg-[#F5F0E7]/[.06] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D6B56F]">
         <span className="grid h-5 w-5 place-items-center rounded-full bg-[#F5F0E7] text-[11px] font-extrabold text-[#071727]" aria-hidden="true">G</span>
         {isLogin ? t("auth.googleLogin") : t("auth.googleRegister")}
-      </button>
+      </Link>
 
       <p className="pt-1 text-center text-sm text-[#AEB8BE]">
         {isLogin ? t("auth.noAccount") : t("auth.hasAccount")}{" "}

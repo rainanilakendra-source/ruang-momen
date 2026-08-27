@@ -5,11 +5,12 @@ import { getCurrentUser } from "../lib/auth";
 import { ADMIN_ROLES, hasRole } from "../lib/roles";
 import { loginAdmin } from "../masuk/actions";
 
-export default async function AdminPage() {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ oauth_error?: string | string[]; two_factor_error?: string | string[] }> }) {
   const user = await getCurrentUser();
+  const { oauth_error: oauthError, two_factor_error: twoFactorError } = await searchParams;
 
   if (!user) {
-    return <RoleLoginPortal roleLabel="Admin" loginAction={loginAdmin} />;
+    return <RoleLoginPortal roleLabel="Admin" loginAction={loginAdmin} oauthError={typeof oauthError === "string" ? oauthError : null} twoFactorError={typeof twoFactorError === "string" ? twoFactorError : null} />;
   }
 
   if (!hasRole(user, ADMIN_ROLES)) {

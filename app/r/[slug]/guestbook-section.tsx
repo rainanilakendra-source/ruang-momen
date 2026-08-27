@@ -5,6 +5,7 @@ import {
   submitGuestbookEntry,
   type GuestbookState,
 } from "./actions";
+import { useI18n } from "../../_components/i18n-provider";
 
 export type GuestbookItem = {
   id: string;
@@ -22,6 +23,7 @@ export function GuestbookSection({
   slug: string;
   entries: GuestbookItem[];
 }) {
+  const { t } = useI18n();
   const formRef = useRef<HTMLFormElement>(null);
   const [state, action, pending] = useActionState(
     submitGuestbookEntry.bind(null, slug),
@@ -35,7 +37,7 @@ export function GuestbookSection({
   return (
     <section className="mt-8 border-t border-[var(--guest-border)] pt-8 text-left" aria-labelledby="guestbook-title">
       <div className="text-center">
-        <p className="text-xs font-bold uppercase tracking-[.2em] text-[var(--guest-accent)]">Buku Cerita</p>
+        <p className="text-xs font-bold uppercase tracking-[.2em] text-[var(--guest-accent)]">{t("ui.guestbook")}</p>
         <h2 id="guestbook-title" className="mt-3 text-2xl font-bold text-[var(--guest-accent-soft)]">Tinggalkan cerita untuk acara ini</h2>
       </div>
 
@@ -43,7 +45,7 @@ export function GuestbookSection({
         <label className="block text-sm font-semibold text-[var(--guest-text)]">Nama <span className="font-normal text-[var(--guest-muted)]">(opsional)</span><input name="guestName" maxLength={40} autoComplete="name" placeholder="Tamu" className="mt-2 min-h-12 w-full rounded-xl border border-[var(--guest-border)] bg-[var(--guest-input)] px-4 text-sm outline-none transition placeholder:text-[var(--guest-muted)] focus:border-[var(--guest-accent)]" /></label>
         <label className="block text-sm font-semibold text-[var(--guest-text)]">Pesan<textarea name="message" required maxLength={500} rows={4} placeholder="Tulis pesan singkat untuk tuan rumah..." className="mt-2 w-full resize-y rounded-xl border border-[var(--guest-border)] bg-[var(--guest-input)] px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-[var(--guest-muted)] focus:border-[var(--guest-accent)]" /></label>
         {state.message && <p role={state.status === "error" ? "alert" : "status"} className={`rounded-xl border px-4 py-3 text-sm ${state.status === "error" ? "border-red-300/20 bg-red-400/10 text-red-100" : "border-emerald-300/20 bg-emerald-400/10 text-emerald-100"}`}>{state.message}</p>}
-        <button type="submit" disabled={pending} className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--guest-accent)] px-5 text-sm font-bold text-[var(--guest-bg)] transition disabled:cursor-wait disabled:opacity-65">{pending ? "Mengirim..." : "Kirim Pesan"}</button>
+        <button type="submit" disabled={pending} className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--guest-accent)] px-5 text-sm font-bold text-[var(--guest-bg)] transition disabled:cursor-wait disabled:opacity-65">{pending ? t("ui.uploading") : t("ui.sendMessage")}</button>
       </form>
 
       <div className="mt-6 space-y-3">

@@ -4,8 +4,12 @@ import { Prisma } from "../../generated/prisma/client";
 import { requireUser } from "../../lib/auth";
 import { hashPassword, verifyPassword } from "../../lib/password";
 import { prisma } from "../../lib/prisma";
+import { redirect } from "next/navigation";
+import { ROLES } from "../../lib/roles";
+import { createEnrollmentChallenge, decryptTwoFactorSecret, generateRecoveryCodes, hashRecoveryCode, TWO_FACTOR_PORTALS, verifyTotp } from "../../lib/two-factor";
 
 export type AccountActionState = { status: "idle" | "success" | "error"; messageKey: string | null };
+export type TwoFactorAccountState = AccountActionState & { recoveryCodes: string[] | null };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 const valueFrom = (formData: FormData, key: string) => {
@@ -48,4 +52,44 @@ export async function changePassword(_state: AccountActionState, formData: FormD
 
   await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(newPassword) }, select: { id: true } });
   return { status: "success", messageKey: "account.passwordChanged" };
+}
+
+export async function beginTwoFactorSetup(): Promise<void> {
+  const user = await requireUser();
+  const account = await prisma.user.findUnique({ where: { id: user.id }, select: { email: true, role: true, twoFactorEnabled: true } });
+  if (!account || account.twoFactorEnabled) return;
+  const portal = account.role === ROLES.SUPER_ADMIN ? TWO_FACTOR_PORTALS.SUPER_ADMIN : account.role === ROLES.ADMIN ? TWO_FACTOR_PORTALS.ADMIN : TWO_FACTOR_PORTALS.USER;
+  await createEnrollmentChallenge(user.id, account.email, portal);
+  redirect("/setup-2fa");
+}
+
+export async function regenerateRecoveryCodes(_state: TwoFactorAccountState, formData: FormData): Promise<TwoFactorAccountState> {
+  const user = await requireUser();
+  const code = valueFrom(formData, "totpCode").trim();
+  const account = await prisma.user.findUnique({ where: { id: user.id }, select: { twoFactorEnabled: true, twoFactorSecretEncrypted: true } });
+  let valid = false;
+  try { valid = Boolean(account?.twoFactorEnabled && account.twoFactorSecretEncrypted && verifyTotp(decryptTwoFactorSecret(account.twoFactorSecretEncrypted), code)); } catch { valid = false; }
+  if (!valid) return { status: "error", messageKey: "twoFactor.errors.invalidCode", recoveryCodes: null };
+  const recoveryCodes = generateRecoveryCodes();
+  await prisma.$transaction([
+    prisma.twoFactorRecoveryCode.deleteMany({ where: { userId: user.id } }),
+    prisma.twoFactorRecoveryCode.createMany({ data: recoveryCodes.map((recoveryCode) => ({ userId: user.id, codeHash: hashRecoveryCode(recoveryCode) })) }),
+  ]);
+  return { status: "success", messageKey: "twoFactor.regenerated", recoveryCodes };
+}
+
+export async function disableTwoFactor(_state: TwoFactorAccountState, formData: FormData): Promise<TwoFactorAccountState> {
+  const user = await requireUser();
+  const code = valueFrom(formData, "totpCode").trim();
+  const account = await prisma.user.findUnique({ where: { id: user.id }, select: { role: true, twoFactorEnabled: true, twoFactorSecretEncrypted: true } });
+  if (!account || account.role === ROLES.SUPER_ADMIN) return { status: "error", messageKey: "twoFactor.requiredSuperAdmin", recoveryCodes: null };
+  let valid = false;
+  try { valid = Boolean(account.twoFactorEnabled && account.twoFactorSecretEncrypted && verifyTotp(decryptTwoFactorSecret(account.twoFactorSecretEncrypted), code)); } catch { valid = false; }
+  if (!valid) return { status: "error", messageKey: "twoFactor.errors.invalidCode", recoveryCodes: null };
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: user.id }, data: { twoFactorEnabled: false, twoFactorSecretEncrypted: null }, select: { id: true } }),
+    prisma.twoFactorRecoveryCode.deleteMany({ where: { userId: user.id } }),
+    prisma.twoFactorChallenge.deleteMany({ where: { userId: user.id } }),
+  ]);
+  return { status: "success", messageKey: "twoFactor.disabled", recoveryCodes: null };
 }

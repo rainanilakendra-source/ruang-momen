@@ -8,9 +8,9 @@ export const metadata: Metadata = { title: "Masuk — Ruang Momen" };
 export default async function MasukPage({
   searchParams,
 }: {
-  searchParams: Promise<{ registered?: string | string[] }>;
+  searchParams: Promise<{ registered?: string | string[]; oauth_error?: string | string[]; two_factor_error?: string | string[] }>;
 }) {
-  const { registered } = await searchParams;
+  const { registered, oauth_error: oauthError, two_factor_error: twoFactorError } = await searchParams;
 
   return (
     <AuthShell eyebrow={<T k="auth.loginEyebrow" />} title={<T k="auth.loginTitle" />} description={<T k="auth.loginDescription" />}>
@@ -19,7 +19,7 @@ export default async function MasukPage({
           <T k="auth.registered" />
         </p>
       )}
-      <AuthForm mode="masuk" />
+      <AuthForm mode="masuk" oauthError={typeof oauthError === "string" ? oauthError : null} twoFactorError={typeof twoFactorError === "string" ? twoFactorError : null} />
     </AuthShell>
   );
 }

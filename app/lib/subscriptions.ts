@@ -13,7 +13,13 @@ export async function getActiveSubscription(userId: string) {
     data: { status: SUBSCRIPTION_STATUSES.EXPIRED },
   });
   return prisma.subscription.findFirst({
-    where: { userId, status: SUBSCRIPTION_STATUSES.ACTIVE, expiredAt: { gt: now } },
+    where: {
+      userId,
+      status: SUBSCRIPTION_STATUSES.ACTIVE,
+      startedAt: { lte: now },
+      expiredAt: { gt: now },
+      plan: { active: true },
+    },
     orderBy: { startedAt: "desc" },
     select: {
       id: true,

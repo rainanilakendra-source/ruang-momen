@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { T } from "./i18n-provider";
 
 export function SiteHeader() {
   return (
@@ -13,10 +14,10 @@ export function SiteHeader() {
           </span>
         </Link>
         <div className="hidden items-center gap-7 text-sm font-semibold text-[#D9D6CE] md:flex lg:text-base">
-          <Link href="/" className="transition-colors hover:text-[#F5F0E7]">Beranda</Link>
-          <Link href="/privasi" className="transition-colors hover:text-[#D6B56F]">Privasi</Link>
-          <Link href="/syarat" className="transition-colors hover:text-[#D6B56F]">Syarat</Link>
-          <Link href="/kontak" className="transition-colors hover:text-[#D6B56F]">Kontak</Link>
+          <Link href="/" className="transition-colors hover:text-[#F5F0E7]"><T k="navigation.home" /></Link>
+          <Link href="/privasi" className="transition-colors hover:text-[#D6B56F]"><T k="ui.privacy" /></Link>
+          <Link href="/syarat" className="transition-colors hover:text-[#D6B56F]"><T k="ui.terms" /></Link>
+          <Link href="/kontak" className="transition-colors hover:text-[#D6B56F]"><T k="ui.contact" /></Link>
         </div>
       </nav>
     </header>
@@ -29,7 +30,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Link href="/" className="inline-flex"><Image src="/brand/ruang-momen-logo.png" alt="Ruang Momen" width={1973} height={644} className="h-12 w-auto object-contain" /></Link>
-          <p className="mt-4 text-sm leading-6 text-[#AEB8BE]">Satu QR. Banyak sudut. Satu cerita.</p>
+          <p className="mt-4 text-sm leading-6 text-[#AEB8BE]"><T k="footer.tagline" /></p>
         </div>
         <div><h2 className="text-xs font-bold uppercase tracking-[.16em] text-[#F5F0E7]">Jelajahi</h2><div className="mt-4 flex flex-col gap-3 text-sm text-[#AEB8BE]"><Link href="/#cara-kerja" className="hover:text-[#F5F0E7]">Alur</Link><Link href="/#contoh-album" className="hover:text-[#F5F0E7]">Inspirasi</Link><Link href="/#fitur" className="hover:text-[#F5F0E7]">Keunggulan</Link></div></div>
         <div><h2 className="text-xs font-bold uppercase tracking-[.16em] text-[#F5F0E7]">Bantuan</h2><div className="mt-4 flex flex-col gap-3 text-sm text-[#AEB8BE]"><Link href="/#faq" className="hover:text-[#F5F0E7]">Pertanyaan Umum</Link><Link href="/privasi" className="hover:text-[#F5F0E7]">Kebijakan Privasi</Link><Link href="/syarat" className="hover:text-[#F5F0E7]">Syarat &amp; Ketentuan</Link><Link href="/kontak" className="hover:text-[#F5F0E7]">Kontak</Link></div></div>

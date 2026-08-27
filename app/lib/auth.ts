@@ -44,7 +44,7 @@ export async function getCurrentUser() {
     select: {
       id: true,
       expiresAt: true,
-      user: { select: { id: true, name: true, email: true, role: true } },
+      user: { select: { id: true, name: true, email: true, role: true, twoFactorEnabled: true } },
     },
   });
 
