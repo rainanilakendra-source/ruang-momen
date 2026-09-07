@@ -11,12 +11,14 @@ export async function deletePhoto(photoId: string): Promise<{ ok: boolean; messa
   if (!photo) return { ok: false, message: "Momen tidak ditemukan." };
 
   try {
-    await storage.delete(photo.storageKey);
-    if (photo.previewStorageKey) await storage.delete(photo.previewStorageKey);
     await prisma.photo.delete({ where: { id: photo.id } });
   } catch {
     return { ok: false, message: "Momen gagal dihapus. Silakan coba lagi." };
   }
+  await Promise.all([
+    storage.delete(photo.storageKey).catch(() => undefined),
+    photo.previewStorageKey ? storage.delete(photo.previewStorageKey).catch(() => undefined) : Promise.resolve(),
+  ]);
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/album");

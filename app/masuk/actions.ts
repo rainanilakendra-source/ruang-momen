@@ -1,17 +1,20 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createSession } from "../lib/auth";
 import { verifyPassword } from "../lib/password";
 import { prisma } from "../lib/prisma";
 import { ROLES, type Role } from "../lib/roles";
 import { prepareSecondFactor, type TwoFactorPortal } from "../lib/two-factor";
+import { consumeRateLimit, requestRateLimitKey } from "../lib/rate-limit";
 
 export type LoginState = {
   error: string | null;
 };
 
 const INVALID_CREDENTIALS = "Email atau kata sandi tidak sesuai.";
+const DUMMY_PASSWORD_HASH = "scrypt$131072$8$1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
 async function loginForRole(
   expectedRole: Role,
@@ -29,6 +32,9 @@ async function loginForRole(
     return { error: INVALID_CREDENTIALS };
   }
 
+  const rateLimit = consumeRateLimit(requestRateLimitKey("password-login", await headers(), `${portal}:${email}`), 10, 15 * 60 * 1000);
+  if (!rateLimit.allowed) return { error: INVALID_CREDENTIALS };
+
   let secondFactorPath: "/verifikasi-2fa" | "/setup-2fa" | null = null;
   try {
     const user = await prisma.user.findUnique({
@@ -36,13 +42,9 @@ async function loginForRole(
       select: { id: true, email: true, passwordHash: true, role: true, twoFactorEnabled: true },
     });
 
-    if (!user?.passwordHash) {
-      return { error: INVALID_CREDENTIALS };
-    }
+    const passwordIsValid = await verifyPassword(password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
 
-    const passwordIsValid = await verifyPassword(password, user.passwordHash);
-
-    if (!passwordIsValid || user.role !== expectedRole) {
+    if (!user || !passwordIsValid || user.role !== expectedRole) {
       return { error: INVALID_CREDENTIALS };
     }
 

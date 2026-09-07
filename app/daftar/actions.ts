@@ -1,10 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { Prisma } from "../generated/prisma/client";
 import { hashPassword } from "../lib/password";
 import { prisma } from "../lib/prisma";
 import { ROLES } from "../lib/roles";
+import { consumeRateLimit, requestRateLimitKey } from "../lib/rate-limit";
 
 export type RegisterState = {
   error: string | null;
@@ -29,6 +31,8 @@ export async function registerUser(
   const email = valueFrom(formData, "email").trim().toLowerCase();
   const password = valueFrom(formData, "password");
   const passwordConfirmation = valueFrom(formData, "passwordConfirmation");
+  const rateLimit = consumeRateLimit(requestRateLimitKey("register", await headers(), email), 5, 60 * 60 * 1000);
+  if (!rateLimit.allowed) return { error: "Terjadi kesalahan. Silakan coba lagi." };
 
   if (!name) {
     return { error: "Nama wajib diisi." };

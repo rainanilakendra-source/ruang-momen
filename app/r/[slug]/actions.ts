@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import {
   createGuestReactionIdentifier,
   GUEST_REACTION_COOKIE,
@@ -21,6 +22,7 @@ import { checkPlanLimit, hasPlanFeature, PLAN_LIMIT_TYPES, PlanLimitExceededErro
 import { PLAN_FEATURES } from "../../lib/plans";
 import { Prisma } from "../../generated/prisma/client";
 import { createBrowserPreview, hasHeicExtension, isHeicMimeType } from "../../lib/photo-preview";
+import { consumeRateLimit, requestRateLimitKey } from "../../lib/rate-limit";
 
 const MIME_EXTENSIONS = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/heic": "heic", "image/heif": "heif" } as const;
 
@@ -53,6 +55,8 @@ export async function submitGuestbookEntry(
   if (!slug || slug.length > 120) {
     return { status: "error", message: "Ruang acara tidak ditemukan." };
   }
+  const rateLimit = consumeRateLimit(requestRateLimitKey("guestbook", await headers(), slug), 20, 10 * 60 * 1000);
+  if (!rateLimit.allowed) return { status: "error", message: "Tunggu beberapa detik sebelum mengirim pesan lagi." };
 
   const guestName = validateGuestName(formData.get("guestName"));
   if (!guestName.ok) return { status: "error", message: guestName.message };
@@ -154,6 +158,8 @@ function safeOriginalName(name: string): string {
 }
 
 export async function uploadGuestPhoto(slug: string, formData: FormData): Promise<UploadPhotoResult> {
+  const rateLimit = consumeRateLimit(requestRateLimitKey("guest-upload", await headers(), slug), 20, 10 * 60 * 1000);
+  if (!rateLimit.allowed) return { status: "error", message: "Foto belum berhasil disimpan. Silakan coba lagi.", retryable: true };
   const event = await prisma.event.findUnique({ where: { slug }, select: { id: true, ownerId: true, guestUploadEnabled: true, uploadStartsAt: true, uploadEndsAt: true } });
   if (!event) return { status: "error", message: "Ruang acara tidak ditemukan.", retryable: false };
   const uploadStatus = getEventUploadStatus(event);

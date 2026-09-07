@@ -14,8 +14,11 @@ import {
   parseGooglePortal,
 } from "../../../../lib/google-oauth";
 import { prisma } from "../../../../lib/prisma";
+import { consumeRateLimit, requestRateLimitKey } from "../../../../lib/rate-limit";
 
 export async function GET(request: Request) {
+  const rateLimit = consumeRateLimit(requestRateLimitKey("oauth-start", request.headers), 20, 10 * 60 * 1000);
+  if (!rateLimit.allowed) return new Response("Too many requests", { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds), "Cache-Control": "no-store" } });
   const portal = parseGooglePortal(new URL(request.url).searchParams.get("portal"));
   if (!portal) redirect("/masuk?oauth_error=invalid_request");
 

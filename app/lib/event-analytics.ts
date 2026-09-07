@@ -2,6 +2,7 @@ import { Prisma } from "../generated/prisma/client";
 import { prisma } from "./prisma";
 
 type ActivityRow = { bucket: Date; count: number };
+type CountRow = { count: number };
 
 export async function getEventAnalytics(eventId: string, ownerId: string) {
   const event = await prisma.event.findFirst({
@@ -10,9 +11,13 @@ export async function getEventAnalytics(eventId: string, ownerId: string) {
   });
   if (!event) return null;
 
-  const [photoAggregate, contributors, reactionCount, guestbookCount, activity, sources, topPhotos, recentMessages] = await Promise.all([
+  const [photoAggregate, contributorCount, reactionCount, guestbookCount, activity, sources, topPhotos, recentMessages] = await Promise.all([
     prisma.photo.aggregate({ where: { eventId }, _count: { _all: true }, _sum: { sizeBytes: true } }),
-    prisma.photo.findMany({ where: { eventId, guestName: { not: null } }, distinct: ["guestName"], select: { guestName: true } }),
+    prisma.$queryRaw<CountRow[]>(Prisma.sql`
+      SELECT COUNT(DISTINCT NULLIF(BTRIM("guest_name"), ''))::int AS count
+      FROM "photos"
+      WHERE "event_id" = ${eventId}
+    `),
     prisma.photoReaction.count({ where: { eventId } }),
     prisma.guestbookEntry.count({ where: { eventId } }),
     prisma.$queryRaw<ActivityRow[]>(Prisma.sql`
@@ -37,7 +42,7 @@ export async function getEventAnalytics(eventId: string, ownerId: string) {
     metrics: {
       moments: photoAggregate._count._all,
       storageBytes: photoAggregate._sum.sizeBytes ?? 0,
-      contributors: contributors.filter(({ guestName }) => Boolean(guestName?.trim())).length,
+      contributors: Number(contributorCount[0]?.count ?? 0),
       reactions: reactionCount,
       guestbook: guestbookCount,
     },

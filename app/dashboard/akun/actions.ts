@@ -7,6 +7,8 @@ import { prisma } from "../../lib/prisma";
 import { redirect } from "next/navigation";
 import { ROLES } from "../../lib/roles";
 import { createEnrollmentChallenge, decryptTwoFactorSecret, generateRecoveryCodes, hashRecoveryCode, TWO_FACTOR_PORTALS, verifyTotp } from "../../lib/two-factor";
+import { headers } from "next/headers";
+import { consumeRateLimit, requestRateLimitKey } from "../../lib/rate-limit";
 
 export type AccountActionState = { status: "idle" | "success" | "error"; messageKey: string | null };
 export type TwoFactorAccountState = AccountActionState & { recoveryCodes: string[] | null };
@@ -40,6 +42,8 @@ export async function updateProfile(_state: AccountActionState, formData: FormDa
 
 export async function changePassword(_state: AccountActionState, formData: FormData): Promise<AccountActionState> {
   const user = await requireUser();
+  const rateLimit = consumeRateLimit(requestRateLimitKey("change-password", await headers(), user.id), 10, 15 * 60 * 1000);
+  if (!rateLimit.allowed) return { status: "error", messageKey: "account.errors.currentPassword" };
   const currentPassword = valueFrom(formData, "currentPassword");
   const newPassword = valueFrom(formData, "newPassword");
   const confirmation = valueFrom(formData, "passwordConfirmation");
@@ -65,6 +69,8 @@ export async function beginTwoFactorSetup(): Promise<void> {
 
 export async function regenerateRecoveryCodes(_state: TwoFactorAccountState, formData: FormData): Promise<TwoFactorAccountState> {
   const user = await requireUser();
+  const rateLimit = consumeRateLimit(requestRateLimitKey("recovery-codes", await headers(), user.id), 12, 10 * 60 * 1000);
+  if (!rateLimit.allowed) return { status: "error", messageKey: "twoFactor.errors.tooManyAttempts", recoveryCodes: null };
   const code = valueFrom(formData, "totpCode").trim();
   const account = await prisma.user.findUnique({ where: { id: user.id }, select: { twoFactorEnabled: true, twoFactorSecretEncrypted: true } });
   let valid = false;
@@ -80,6 +86,8 @@ export async function regenerateRecoveryCodes(_state: TwoFactorAccountState, for
 
 export async function disableTwoFactor(_state: TwoFactorAccountState, formData: FormData): Promise<TwoFactorAccountState> {
   const user = await requireUser();
+  const rateLimit = consumeRateLimit(requestRateLimitKey("disable-two-factor", await headers(), user.id), 12, 10 * 60 * 1000);
+  if (!rateLimit.allowed) return { status: "error", messageKey: "twoFactor.errors.tooManyAttempts", recoveryCodes: null };
   const code = valueFrom(formData, "totpCode").trim();
   const account = await prisma.user.findUnique({ where: { id: user.id }, select: { role: true, twoFactorEnabled: true, twoFactorSecretEncrypted: true } });
   if (!account || account.role === ROLES.SUPER_ADMIN) return { status: "error", messageKey: "twoFactor.requiredSuperAdmin", recoveryCodes: null };

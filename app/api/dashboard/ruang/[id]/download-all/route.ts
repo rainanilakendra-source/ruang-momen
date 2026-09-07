@@ -47,20 +47,21 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (!user) return new Response("Not found", { status: 404 });
 
   const { id } = await params;
-  const ownedEvent = await prisma.event.findFirst({ where: { id, ownerId: user.id }, select: { id: true } });
-  if (!ownedEvent) return new Response("Not found", { status: 404 });
-  if (!(await hasPlanFeature(user.id, PLAN_FEATURES.ZIP_EXPORT))) return new Response("Fitur ZIP tidak tersedia pada paket aktif.", { status: 403 });
-  const event = await prisma.event.findFirst({
-    where: { id, ownerId: user.id },
-    select: {
-      name: true,
-      photos: {
-        orderBy: { createdAt: "asc" },
-        select: { id: true, originalName: true, storageKey: true, sizeBytes: true, createdAt: true },
+  const [event, zipAllowed] = await Promise.all([
+    prisma.event.findFirst({
+      where: { id, ownerId: user.id },
+      select: {
+        name: true,
+        photos: {
+          orderBy: { createdAt: "asc" },
+          select: { id: true, originalName: true, storageKey: true, sizeBytes: true, createdAt: true },
+        },
       },
-    },
-  });
+    }),
+    hasPlanFeature(user.id, PLAN_FEATURES.ZIP_EXPORT),
+  ]);
   if (!event) return new Response("Not found", { status: 404 });
+  if (!zipAllowed) return new Response("Fitur ZIP tidak tersedia pada paket aktif.", { status: 403 });
   if (event.photos.length === 0) return new Response("Belum ada foto untuk diunduh.", { status: 409 });
 
   const estimatedSize = event.photos.reduce((total, photo) => total + photo.sizeBytes + 256, 22);

@@ -17,6 +17,7 @@ import {
 import { prisma } from "../../../../lib/prisma";
 import { ROLES } from "../../../../lib/roles";
 import { prepareSecondFactor } from "../../../../lib/two-factor";
+import { consumeRateLimit, requestRateLimitKey } from "../../../../lib/rate-limit";
 
 type FailureCode = "cancelled" | "invalid_state" | "expired" | "invalid_identity" | "email_unverified" | "email_exists" | "already_linked" | "email_mismatch" | "role_mismatch" | "provider_error";
 
@@ -25,6 +26,8 @@ function failure(path: string, code: FailureCode): never {
 }
 
 export async function GET(request: Request) {
+  const rateLimit = consumeRateLimit(requestRateLimitKey("oauth-callback", request.headers), 30, 10 * 60 * 1000);
+  if (!rateLimit.allowed) return new Response("Too many requests", { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds), "Cache-Control": "no-store" } });
   const incomingUrl = new URL(request.url);
   const state = incomingUrl.searchParams.get("state");
   const cookieStore = await cookies();

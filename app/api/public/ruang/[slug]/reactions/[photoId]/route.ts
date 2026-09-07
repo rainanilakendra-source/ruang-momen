@@ -9,6 +9,7 @@ import {
 import { prisma } from "../../../../../../lib/prisma";
 import { hasPlanFeature } from "../../../../../../lib/plan-limits";
 import { PLAN_FEATURES } from "../../../../../../lib/plans";
+import { consumeRateLimit, requestRateLimitKey } from "../../../../../../lib/rate-limit";
 
 const MAX_TRANSACTION_ATTEMPTS = 3;
 
@@ -24,13 +25,15 @@ function retryDelay(attempt: number): Promise<void> {
 }
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string; photoId: string }> },
 ) {
   const { slug, photoId } = await params;
   if (!slug || slug.length > 120 || !photoId || photoId.length > 64) {
     return Response.json({ error: "Reaction tidak valid." }, { status: 400 });
   }
+  const rateLimit = consumeRateLimit(requestRateLimitKey("reaction", request.headers, slug), 60, 60 * 1000);
+  if (!rateLimit.allowed) return Response.json({ error: "Reaction belum berhasil disimpan." }, { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds), "Cache-Control": "no-store" } });
 
   const photo = await prisma.photo.findFirst({
     where: {

@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createSession } from "../lib/auth";
 import { prisma } from "../lib/prisma";
 import {
@@ -14,10 +15,13 @@ import {
   twoFactorDestination,
   verifyTotp,
 } from "../lib/two-factor";
+import { consumeRateLimit, requestRateLimitKey } from "../lib/rate-limit";
 
 export type VerifyTwoFactorState = { errorKey: string | null };
 
 export async function verifySecondFactor(_state: VerifyTwoFactorState, formData: FormData): Promise<VerifyTwoFactorState> {
+  const rateLimit = consumeRateLimit(requestRateLimitKey("two-factor-verify", await headers()), 12, 10 * 60 * 1000);
+  if (!rateLimit.allowed) return { errorKey: "twoFactor.errors.tooManyAttempts" };
   const challenge = await getTwoFactorChallenge();
   const portal = challenge ? parseTwoFactorPortal(challenge.portal) : null;
   if (!challenge || !portal || challenge.type !== TWO_FACTOR_TYPES.VERIFY) return { errorKey: "twoFactor.errors.challenge" };
